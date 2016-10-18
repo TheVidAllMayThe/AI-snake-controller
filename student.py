@@ -34,7 +34,7 @@ class StudentAgent(Snake):
 
 
 	def distance(self,pos1, pos2):
-		return min(abs(pos2[0]-pos1[0]), self.mapsize[0]-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
+		return 1.2*min(abs(pos2[0]-pos1[0]), self.mapsize[0]-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
 
 	def isGoal(mypos, target):
 		return mypos == target
@@ -50,8 +50,9 @@ class StudentAgent(Snake):
             heappush(frontier, node)
             explored = []
             count = 0
-            while count <= 100:
+            while True:
                 count += 1
+                print(count)
                 if frontier == []:
                         return None
                 node = heappop(frontier)
@@ -59,17 +60,18 @@ class StudentAgent(Snake):
                 if StudentAgent.isGoal(node.maze[0][0],node.maze[3]):
                         return node.getAction()
 
-                if node.maze not in explored:
-                        explored += [node.maze]
+                if node.maze[0][0] not in explored:
+                        explored += [node.maze[0][0]]
+
                 for x in self.valid_actions(node.maze):
                         result = self.result(node.maze,x)
                         child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
 
-                        if child.maze not in explored and child not in frontier:
+                        if child.maze[0][0] not in explored and child not in frontier:
                                 heappush(frontier,child)
 
                         elif [x for x in frontier if x == child and x.costG > child.costG] != []:
                                 frontier.remove(child)
-                                #heapify(frontier)
+                                heapify(frontier)
                                 heappush(frontier,child)
             return node.getAction()
