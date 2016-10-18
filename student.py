@@ -3,13 +3,14 @@ from constants import *
 from heapq import *
 from node import Node
 from functools import reduce
-
+import time
 class StudentAgent(Snake):
 	def __init__(self, body=[(0,0)] , direction=(1,0)):
 		super().__init__(body,direction,name="Student")
 
 	def update(self,points=None, mapsize=None, count=None):
-		self.mapsize = mapsize
+            self.nOpponents = len(points) - 1 
+            self.mapsize = mapsize
 
 
 	def updateDirection(self,maze):
@@ -23,10 +24,10 @@ class StudentAgent(Snake):
 	def valid_actions(self,mazedata):
             validDirections = []
             occupiedPositions = mazedata[2] + mazedata[0]
-            for x in range(len(mazedata[1])):
-                occupiedPositions += mazedata[1][x]
+            for x in range(self.nOpponents):
+                print(mazedata[1][x])
+                occupiedPositions += [mazedata[1][x]]
             directions = (up, down, right, left)
-
             for x in directions:
                     if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
                             validDirections += [x]
