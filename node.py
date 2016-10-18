@@ -1,26 +1,24 @@
 import copy
 
 class Node:
-    def __init__(self,state,cost,expectedCost,action,parent):
-        self.state = copy.deepcopy(state)
-        self.cost = cost
-        self.expectedCost = expectedCost
-        self.totalCost = cost + expectedCost
-        self.action = action  
+    def __init__(self,maze,costG,costH,action,parent):
+        self.maze = maze
+        self.costG = costG
+        self.costH = costH
+        self.costF = costG + costH
+        self.action = action
         self.parent = parent
-   
+
     def __eq__(self,other):
         if other == None:
             return None
-        return self.state == other.state
+        return self.maze == other.maze
 
     def __lt__(self,other):
-        return self.totalCost < other.totalCost
+        return self.costF < other.costF
 
-    def getPath(self):
-        path = []
+    def getAction(self):
         node = self
-        while node.parent != None:
-           path = [ node.action ] + path
+        while node.parent.parent != None:
            node = node.parent
-        return path
+        return node.action
