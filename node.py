@@ -1,6 +1,8 @@
+import copy
+
 class Node:
-    def __init__(self,maze,cost,expectedCost,action,parent):
-        self.maze = maze
+    def __init__(self,state,cost,expectedCost,action,parent):
+        self.state = copy.deepcopy(state)
         self.cost = cost
         self.expectedCost = expectedCost
         self.totalCost = cost + expectedCost
@@ -10,7 +12,7 @@ class Node:
     def __eq__(self,other):
         if other == None:
             return None
-        return self.cube == other.cube
+        return self.state == other.state
 
     def __lt__(self,other):
         return self.totalCost < other.totalCost

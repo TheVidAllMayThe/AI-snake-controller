@@ -2,18 +2,24 @@ from constants import *
 from snake import Snake
 from node import Node
 from state1 import State
+import math
 import random
+import heapq
 
 class StudentAgent(Snake):
     def __init__(self,body=[(0,0)] , direction=(1,0)):
-        super().__init__(body,direction,name="StudentAgent")
+        super().__init__(body,direction,name="StudentAgent1")
 
     #Where we update self.direction
     def updateDirection(self,maze):
         opponentPos = [ x for x in maze.playerpos if x != self.body ]
         state = State( self.body, opponentPos, maze.obstacles, maze.foodpos)
-        self.direction = self.actions(state)[random.randrange(len(self.actions(state)))] 
-        #self.direction = self.aStarSearch(state).action  
+        c = self.aStarSearch(state)
+        while c.parent.parent != None: 
+            c = c.parent
+
+        self.direction = c.action  
+    
 
     #Gets some game information
     def update(self,points=None, mapsize=None, count=None):
@@ -38,11 +44,42 @@ class StudentAgent(Snake):
         if self.result(state,right).playerPos[0] in state.playerPos + state.opponentPos + state.obstacles:    
             actions.remove(right)
         return actions
-    
+
+    #Return True if state is goal
+    def isGoal(self,state):
+        return state.playerPos[0] == state.foodpos
+
     #Returns expected value (has to minimize the actual steps it takes to get to goal)
     def heuristic(self,state):
-        pass
+        return self.manhattan_distance(state.playerPos[0],state.foodpos)
 
+    def manhattan_distance(self,x,y):
+        return min(abs(y[0]-x[0]), self.mapsize[0]-1-abs(y[0]-x[0]))  +  min(abs(y[1]-x[1]), self.mapsize[1]-1-abs(y[1]-x[1]))
+ 
     #Returns node
     def aStarSearch(self,state):
-        pass
+        node = Node(state,0,self.heuristic(state),None,None)
+        frontier = []
+        heapq.heappush(frontier, node)
+        explored = []
+        while True:
+            if frontier == []:
+                return None
+            node = heapq.heappop(frontier)
+            if self.isGoal(node.state):
+                return node
+           
+            if node.state not in explored:
+                explored += [node.state]
+            
+            for action in self.actions(node.state):
+                child = Node( self.result(node.state, action) , node.cost+1, self.heuristic(node.state), action, node)
+                if child.state not in explored and child not in frontier:
+                    heapq.heappush(frontier, child)
+
+                elif child in frontier:
+                    i = frontier.index(child)
+                    if frontier[i].cost > child.cost:
+                        frontier.remove(frontier[i])
+                        heapq.heapify(frontier)
+                        heapq.heappush(frontier, child)
