@@ -13,26 +13,28 @@ class StudentAgent(Snake):
 
 
 	def updateDirection(self,maze):
-		studentAgent = self.body
-		opponentsAgents = [x for x in maze.playerpos if x != self.body]
-		obstacles = maze.obstacles
-		foodpos = maze.foodpos
-		mazedata = (studentAgent,opponentsAgents,obstacles,foodpos)
-		self.direction = self.aStar(mazedata)
+            studentAgent = self.body
+            opponentsAgents = [x for x in maze.playerpos if x != self.body[0]]
+            obstacles = maze.obstacles
+            foodpos = maze.foodpos
+            mazedata = (studentAgent,opponentsAgents,obstacles,foodpos)
+            self.direction = self.aStar(mazedata)
 
 	def valid_actions(self,mazedata):
-		validDirections = []
-		occupiedPositions = reduce(lambda x,y:[x]+[y], mazedata[1]) + mazedata[2] + mazedata[0]
-		directions = (up, down, right, left)
+            validDirections = []
+            occupiedPositions = mazedata[2] + mazedata[0]
+            for x in range(len(mazedata[1])):
+                occupiedPositions += mazedata[1][x]
+            directions = (up, down, right, left)
 
-		for x in directions:
-			if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
-				validDirections += [x]
-		return validDirections
+            for x in directions:
+                    if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
+                            validDirections += [x]
+            return validDirections
 
 
 	def distance(self,pos1, pos2):
-		return min(abs(pos2[0]-pos1[0]), self.mapsize[0]-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
+		return 1.5*min(abs(pos2[0]-pos1[0]), self.mapsize[0]-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
 
 	def isGoal(mypos, target):
 		return mypos == target
