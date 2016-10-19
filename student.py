@@ -3,15 +3,18 @@ from constants import *
 from heapq import *
 from node import Node
 from functools import reduce
-import time
+
 class StudentAgent(Snake):
 	def __init__(self, body=[(0,0)] , direction=(1,0)):
 		super().__init__(body,direction,name="Student")
 
 	def update(self,points=None, mapsize=None, count=None):
-		self.nOpponents = len(points) - 1
-		self.mapsize = mapsize
-
+            self.nOpponents = len(points) - 1
+            self.mapsize = mapsize
+            if self.nOpponents == 0:
+                self.opponentPoints = 0
+            else:
+                self.opponentPoints = [ x[1] for x in points if x[0] != self.name ][0]
 
 	def updateDirection(self,maze):
 		studentAgent = self.body
@@ -19,32 +22,19 @@ class StudentAgent(Snake):
 		obstacles = maze.obstacles
 		foodpos = maze.foodpos
 		mazedata = (studentAgent,opponentsAgents,obstacles,foodpos)
-		#print(mazedata[0])
 		self.direction = self.aStar(mazedata)
 
-	def possibleColisionAction(self, mazedata):
-		if len(mazedata[1]) == 0:
-			return []
-		possibleAgentAction = self.valid_actions(mazedata)
-		possibleOpponentAction = self.valid_actions((mazedata[1],mazedata[0],mazedata[2],mazedata[3]))
-		possibleActions = []
-		for x in possibleAgentAction:
-			for y in possibleOpponentAction:
-				if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) == ((mazedata[1][0][0]+y[0])%self.mapsize[0],(mazedata[1][0][1] + y[1])%self.mapsize[1]):
-					possibleActions += x
-				elif ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) == mazedata[1][0] and ((mazedata[1][0][0]+y[0])%self.mapsize[0],(mazedata[1][0][1] + y[1])%self.mapsize[1]) == mazedata[0][0]:
-					possibleActions += x
-		return possibleActions
-
 	def valid_actions(self,mazedata):
-		validDirections = []
-		#print(mazedata[0])
-		occupiedPositions = mazedata[2] + mazedata[1] + mazedata[0]
-		directions = (up, down, right, left)
-		for x in directions:
-				if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
-					validDirections += [x]
-		return validDirections
+            validDirections = []
+            occupiedPositions = mazedata[2] + mazedata[1] + mazedata[0]
+            directions = (up, down, right, left)
+            if self.points <= self.opponentPoints:
+                for x in directions:
+                    occupiedPositions += ((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])
+            for x in directions:
+                if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
+                    validDirections += [x]
+            return validDirections
 
 
 	def distance(self,pos1, pos2):
@@ -80,15 +70,14 @@ class StudentAgent(Snake):
 				explored += [node.maze[0][0]]
 			#print(self.valid_actions(node.maze))
 			for x in self.valid_actions(node.maze):
-				if x not in self.possibleColisionAction(mazedata) or len(mazedata[0])>len(mazedata[1]):
-					result = self.result(node.maze,x)
-					child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
+                                result = self.result(node.maze,x)
+                                child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
 
-					if child.maze[0][0] not in explored and child not in frontier:
-							heappush(frontier,child)
+                                if child.maze[0][0] not in explored and child not in frontier:
+                                                heappush(frontier,child)
 
-					elif [x for x in frontier if x == child and x.costG > child.costG] != []:
-							frontier.remove(child)
-							heappush(frontier,child)
+                                elif [x for x in frontier if x == child and x.costG > child.costG] != []:
+                                                frontier.remove(child)
+                                                heappush(frontier,child)
 
 		return node.getAction()
