@@ -32,6 +32,8 @@ class StudentAgent(Snake):
 			for y in possibleOpponentAction:
 				if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) == ((mazedata[1][0][0]+y[0])%self.mapsize[0],(mazedata[1][0][1] + y[1])%self.mapsize[1]):
 					possibleActions += x
+				elif ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) == mazedata[1][0] and ((mazedata[1][0][0]+y[0])%self.mapsize[0],(mazedata[1][0][1] + y[1])%self.mapsize[1]) == mazedata[1][0]:
+					possibleActions += x
 		return possibleActions
 
 	def valid_actions(self,mazedata):
@@ -88,4 +90,5 @@ class StudentAgent(Snake):
 					elif [x for x in frontier if x == child and x.costG > child.costG] != []:
 							frontier.remove(child)
 							heappush(frontier,child)
+
 		return node.getAction()
