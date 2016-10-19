@@ -31,6 +31,8 @@ class StudentAgent(Snake):
             if self.points <= self.opponentPoints:
                 for x in directions:
                     occupiedPositions += [((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])]
+                if mazedata[3] in occupiedPositions:
+                    occupiedPositions = [ x for x in occupiedPositions if x != mazedata[3] ]
             for x in directions:
                 if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
                     validDirections += [x]
@@ -54,11 +56,8 @@ class StudentAgent(Snake):
 		frontier = []
 		heappush(frontier, node)
 		explored = []
-		count = 0
 
 		while True:
-			count += 1
-			#print(count)
 			if frontier == []:
 				return None
 			node = heappop(frontier)
@@ -68,7 +67,6 @@ class StudentAgent(Snake):
 
 			if node.maze[0][0] not in explored:
 				explored += [node.maze[0][0]]
-			#print(self.valid_actions(node.maze))
 			for x in self.valid_actions(node.maze):
                                 result = self.result(node.maze,x)
                                 child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
@@ -79,5 +77,3 @@ class StudentAgent(Snake):
                                 elif [x for x in frontier if x == child and x.costG > child.costG] != []:
                                                 frontier.remove(child)
                                                 heappush(frontier,child)
-
-		return node.getAction()
