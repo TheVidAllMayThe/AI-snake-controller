@@ -3,7 +3,7 @@ from constants import *
 from heapq import *
 from node import Node
 from functools import reduce
-
+import time
 class StudentAgent(Snake):
 	def __init__(self, body=[(0,0)] , direction=(1,0)):
 		super().__init__(body,direction,name="Student")
@@ -30,7 +30,7 @@ class StudentAgent(Snake):
             directions = (up, down, right, left)
             if self.points <= self.opponentPoints:
                 for x in directions:
-                    occupiedPositions += ((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])
+                    occupiedPositions += [((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])]
             for x in directions:
                 if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
                     validDirections += [x]
