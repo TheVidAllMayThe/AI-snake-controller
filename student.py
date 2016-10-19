@@ -22,7 +22,17 @@ class StudentAgent(Snake):
 		#print(mazedata[0])
 		self.direction = self.aStar(mazedata)
 
-
+	def possibleColisionAction(self, mazedata):
+		if len(mazedata[1]) == 0:
+			return []
+		possibleAgentAction = self.valid_actions(mazedata)
+		possibleOpponentAction = self.valid_actions((mazedata[1],mazedata[0],mazedata[2],mazedata[3]))
+		possibleActions = []
+		for x in possibleAgentAction:
+			for y in possibleOpponentAction:
+				if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) == ((mazedata[1][0][0]+y[0])%self.mapsize[0],(mazedata[1][0][1] + y[1])%self.mapsize[1]):
+					possibleActions += x
+		return possibleActions
 
 	def valid_actions(self,mazedata):
 		validDirections = []
@@ -31,15 +41,12 @@ class StudentAgent(Snake):
 		directions = (up, down, right, left)
 		for x in directions:
 				if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
-
-					#
-
 					validDirections += [x]
 		return validDirections
 
 
 	def distance(self,pos1, pos2):
-		return 1.2*min(abs(pos2[0]-pos1[0]), self.mapsize[0]-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
+		return 1.5*min(abs(pos2[0]-pos1[0]), self.mapsize[0]-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
 
 	def isGoal(mypos, target):
 		return mypos == target
@@ -71,14 +78,14 @@ class StudentAgent(Snake):
 				explored += [node.maze[0][0]]
 			#print(self.valid_actions(node.maze))
 			for x in self.valid_actions(node.maze):
-				result = self.result(node.maze,x)
-				child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
+				if x not in self.possibleColisionAction(mazedata) or len(mazedata[0])>len(mazedata[1]):
+					result = self.result(node.maze,x)
+					child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
 
-				if child.maze[0][0] not in explored and child not in frontier:
-						heappush(frontier,child)
+					if child.maze[0][0] not in explored and child not in frontier:
+							heappush(frontier,child)
 
-				elif [x for x in frontier if x == child and x.costG > child.costG] != []:
-						frontier.remove(child)
-						heapify(frontier)
-						heappush(frontier,child)
+					elif [x for x in frontier if x == child and x.costG > child.costG] != []:
+							frontier.remove(child)
+							heappush(frontier,child)
 		return node.getAction()
