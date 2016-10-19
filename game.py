@@ -1,4 +1,4 @@
-# Snake Game Version 1.0 
+# Snake Game Version 1.0
 # Initially based on the code provided by http://www.virtualanup.com at https://gist.githubusercontent.com/virtualanup/7254581/raw/d69804ce5b41f73aa847f4426098dca70b5a1294/snake2.py
 # Diogo Gomes <dgomes@av.it.pt>
 
@@ -10,7 +10,7 @@ from pygame.locals import *
 import constants
 import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-      
+
 class Maze:
     def __init__(self, o, p, f):
         self.obstacles = copy.deepcopy(o)
@@ -19,10 +19,10 @@ class Maze:
 
 class Player:
     def __init__(self, agent, color=(255,0,0)):
-        self.agent = agent 
-        self.body = agent.body 
+        self.agent = agent
+        self.body = agent.body
         self.name = agent.name
-        self.color = color 
+        self.color = color
         self.IsDead = False
         self.points = 0
     def kill(self):
@@ -41,14 +41,14 @@ class SnakeGame:
         self.verttiles=ver  #number of vertical tiles
         self.screen = pygame.display.set_mode(((self.hortiles+1)*self.tilesize,(self.verttiles+1)*self.tilesize+25), pygame.RESIZABLE)
         pygame.display.set_caption('Python Snake')
-        
+
         #load the font
         self.font = pygame.font.Font(None, 30)
         self.obstacles=[]
         self.obscolor=(139,69,19)
         self.foodcolor=(0,255,0)
         self.foodpos=(0,0)
-        self.fps=fps #frames per second. The higher, the harder
+        self.fps=50 #frames per second. The higher, the harder
 
     def generateFood(self):
         if self.foodpos == (0,0):
@@ -61,7 +61,7 @@ class SnakeGame:
         while (pos in self.obstacles):
             pos = random.randrange(1, self.hortiles), random.randrange(1, self.verttiles)
         return pos
-    
+
     def setObstacles(self,level):
         for i in range(1,level+1):
             lo=random.randrange(1,self.hortiles),random.randrange(1,self.verttiles) #last obstacle
@@ -86,7 +86,7 @@ class SnakeGame:
     def printstatus(self):
         PlayerStat = namedtuple('PlayerStat', 'name color points')
         players = [PlayerStat(p.name, p.color, p.points) for p in self.players + self.dead]
-       
+
         score = "{} vs {}".format(players[0].points, players[1].points)
         text = self.font.render(score, 1,(255,255,255))
         textpos = text.get_rect(centerx=self.screen.get_width()/2,y=(self.verttiles+1)*self.tilesize)
@@ -97,12 +97,12 @@ class SnakeGame:
 
         player2_name=self.font.render(players[1].name,1,players[1].color)
         player2_pos = player2_name.get_rect(x=self.screen.get_width()/2 + self.font.size(score)[0],y=(self.verttiles+1)*self.tilesize)
-            
-        
+
+
         self.screen.blit(player1_name, player1_pos)
         self.screen.blit(player2_name, player2_pos)
         self.screen.blit(text, textpos)
-      
+
         text=None
         if len(self.players) == 1:
             text=self.font.render("{} is the Winner!".format(self.players[0].name),1,self.players[0].color)
@@ -111,7 +111,7 @@ class SnakeGame:
         if text != None:
             textpos = text.get_rect(centerx=self.screen.get_width()/2,centery=self.screen.get_height()/2)
             self.screen.blit(text, textpos)
-    
+
     def updatePlayerInfo(self):
         #update where the players are in the board just before updating the logic
         self.playerpos=[]
