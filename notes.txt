@@ -1,0 +1,4 @@
+Dies...
+Might get into a position where it has no way to escape after it eats
+
+Defensive mode?
