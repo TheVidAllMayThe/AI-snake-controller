@@ -5,10 +5,10 @@ from node import Node
 from functools import reduce
 import time
 class StudentAgent(Snake):
-	def __init__(self, body=[(0,0)] , direction=(1,0)):
-		super().__init__(body,direction,name="Student")
+    def __init__(self, body=[(0,0)] , direction=(1,0)):
+        super().__init__(body,direction,name="Student")
 
-	def update(self,points=None, mapsize=None, count=None):
+    def update(self,points=None, mapsize=None, count=None):
             self.nOpponents = len(points) - 1
             self.mapsize = mapsize
             if self.nOpponents == 0:
@@ -16,64 +16,80 @@ class StudentAgent(Snake):
             else:
                 self.opponentPoints = [ x[1] for x in points if x[0] != self.name ][0]
 
-	def updateDirection(self,maze):
-		studentAgent = self.body
-		opponentsAgents = [x for x in maze.playerpos if x not in self.body]
-		obstacles = maze.obstacles
-		foodpos = maze.foodpos
-		mazedata = (studentAgent,opponentsAgents,obstacles,foodpos)
-		self.direction = self.aStar(mazedata)
+    def updateDirection(self,maze):
+        studentAgent = self.body
+        opponentsAgents = [x for x in maze.playerpos if x not in self.body]
+        obstacles = maze.obstacles
+        foodpos = maze.foodpos
+        mazedata = (studentAgent,opponentsAgents,obstacles,foodpos)
 
-	def valid_actions(self,mazedata):
+        newDir = self.aStar(mazedata)
+        self.direction = newDir
+        print("OurHead")
+        print(mazedata[0][0])
+        print("TheirHead")
+        print(mazedata[1][0])
+        print(newDir)
+
+
+
+
+    def valid_actions(self,mazedata):
             validDirections = []
             occupiedPositions = mazedata[2] + mazedata[1] + mazedata[0]
             directions = (up, down, right, left)
-            if self.points <= self.opponentPoints:
-                for x in directions:
-                    occupiedPositions += [((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])]
-                if mazedata[3] in occupiedPositions:
-                    occupiedPositions = [ x for x in occupiedPositions if x != mazedata[3] ]
+            if self.nOpponents != 0:#self.points <= self.opponentPoints and :
+                for x in directions: #Remover casos de colisão caso estejamos a perder
+                    newX = (mazedata[1][0][0]+x[0])%self.mapsize[0]
+                    newY = (mazedata[1][0][1]+x[1])%self.mapsize[1]
+                    occupiedPositions += [(newX if newX != 0 else self.mapsize[0], newY if newY != 0 else self.mapsize[1])]
+                if mazedata[3] in occupiedPositions: #Caso de colisão na comida: REQUER VERIFICAÇÃO
+                    occupiedPositions = [ x for x in occupiedPositions if x != mazedata[3]]
             for x in directions:
-                if ((mazedata[0][0][0]+x[0])%self.mapsize[0],(mazedata[0][0][1] + x[1])%self.mapsize[1]) not in occupiedPositions:
+                newX = (mazedata[0][0][0]+x[0])%self.mapsize[0]
+                newY = (mazedata[0][0][1]+x[1])%self.mapsize[1]
+                if (newX if newX != 0 else self.mapsize[0],newY if newY != 0 else self.mapsize[1]) not in occupiedPositions:
                     validDirections += [x]
             return validDirections
 
+    def distance(self,pos1, pos2):
+        return 1.5*min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
 
-	def distance(self,pos1, pos2):
-		return 1.5*min(abs(pos2[0]-pos1[0]), self.mapsize[0]-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
+    def isGoal(mypos, target):
+        return mypos == target
 
-	def isGoal(mypos, target):
-		return mypos == target
+    def result(self,mazedata, action):
+        newX = (mazedata[0][0][0]+action[0])%self.mapsize[0]
+        newY = (mazedata[0][0][1]+action[1])%self.mapsize[1]
+        playerpos = [(newX if newX != 0 else self.mapsize[0], newY if newY != 0 else self.mapsize[1])]
+        playerpos += mazedata[0][:-1]
+        return (playerpos,mazedata[1],mazedata[2],mazedata[3])
 
-	def result(self,mazedata, action):
-		playerpos = [((mazedata[0][0][0] + action[0]) % self.mapsize[0],(mazedata[0][0][1] + action[1]) % self.mapsize[1])]
-		playerpos += mazedata[0][:-1]
-		return (playerpos,mazedata[1],mazedata[2],mazedata[3])
+    def aStar(self, mazedata):
 
-	def aStar(self, mazedata):
+        node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),None,None)
+        frontier = []
+        heappush(frontier, node)
+        explored = []
 
-		node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),None,None)
-		frontier = []
-		heappush(frontier, node)
-		explored = []
+        while True:
+            if frontier == []:
+                return None
 
-		while True:
-			if frontier == []:
-				return None
-			node = heappop(frontier)
+            node = heappop(frontier)
 
-			if StudentAgent.isGoal(node.maze[0][0],node.maze[3]):
-				return node.getAction()
+            if StudentAgent.isGoal(node.maze[0][0],node.maze[3]):
+                return node.getAction()
 
-			if node.maze[0][0] not in explored:
-				explored += [node.maze[0][0]]
-			for x in self.valid_actions(node.maze):
-                                result = self.result(node.maze,x)
-                                child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
+            if node.maze[0][0] not in explored:
+                explored += [node.maze[0][0]]
+            for x in self.valid_actions(node.maze):
+                result = self.result(node.maze,x)
+                child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
 
-                                if child.maze[0][0] not in explored and child not in frontier:
-                                                heappush(frontier,child)
+                if child.maze[0][0] not in explored and child not in frontier:
+                    heappush(frontier,child)
 
-                                elif [x for x in frontier if x == child and x.costG > child.costG] != []:
-                                                frontier.remove(child)
-                                                heappush(frontier,child)
+                elif [x for x in frontier if x == child and x.costG > child.costG] != []:
+                    frontier.remove(child)
+                    heappush(frontier,child)
