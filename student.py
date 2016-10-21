@@ -25,18 +25,10 @@ class StudentAgent(Snake):
 
         newDir = self.aStar(mazedata)
         self.direction = newDir
-        print("OurHead")
-        print(mazedata[0][0])
-        print("TheirHead")
-        print(mazedata[1][0])
-        print(newDir)
-
-
-
 
     def valid_actions(self,mazedata):
             validDirections = []
-            occupiedPositions = mazedata[2] + mazedata[1] + mazedata[0]
+            occupiedPositions = mazedata[2] + mazedata[1][:-1] + mazedata[0]
             directions = (up, down, right, left)
             if self.nOpponents != 0:#self.points <= self.opponentPoints and :
                 for x in directions: #Remover casos de colisão caso estejamos a perder
