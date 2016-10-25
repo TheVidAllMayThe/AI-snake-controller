@@ -22,8 +22,11 @@ class StudentAgent(Snake):
         obstacles = maze.obstacles
         foodpos = maze.foodpos
         mazedata = (studentAgent,opponentsAgents,obstacles,foodpos) #Search for food
-        newDir = self.aStar(mazedata)
-        self.direction = newDir
+        finalnode = self.aStar(mazedata)
+        if finalnode == None:
+            self.direction = self.valid_actions(mazedata)[0]
+        else:
+            self.direction = finalnode.getAction()
 
     def valid_actions(self,mazedata):
             validDirections = []
@@ -68,7 +71,7 @@ class StudentAgent(Snake):
             node = heappop(frontier)
 
             if StudentAgent.isGoal(node.maze[0][0],node.maze[3]):
-                return node.getAction()
+                return node
 
             if node.maze[0][0] not in explored:
                 explored += [node.maze[0][0]]

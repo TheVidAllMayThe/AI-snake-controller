@@ -8,6 +8,7 @@ class Node:
         self.costF = costG + costH
         self.action = action
         self.parent = parent
+        self.depth = 0 if parent == None else parent.depth + 1
 
     def __eq__(self,other):
         if other == None:
@@ -19,6 +20,8 @@ class Node:
 
     def getAction(self):
         node = self
-        while node.parent.parent != None:
-           node = node.parent
-        return node.action
+        action = None
+        while node.parent != None:
+            action = node.action
+            node = node.parent
+        return action
