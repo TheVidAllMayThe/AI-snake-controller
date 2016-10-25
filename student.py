@@ -3,7 +3,7 @@ from constants import *
 from heapq import *
 from node import Node
 from functools import reduce
-import time
+
 class StudentAgent(Snake):
     def __init__(self, body=[(0,0)] , direction=(1,0)):
         super().__init__(body,direction,name="Student")
@@ -21,16 +21,15 @@ class StudentAgent(Snake):
         opponentsAgents = [x for x in maze.playerpos if x not in self.body]
         obstacles = maze.obstacles
         foodpos = maze.foodpos
-        mazedata = (studentAgent,opponentsAgents,obstacles,foodpos)
-
+        mazedata = (studentAgent,opponentsAgents,obstacles,foodpos) #Search for food
         newDir = self.aStar(mazedata)
         self.direction = newDir
 
     def valid_actions(self,mazedata):
             validDirections = []
-            occupiedPositions = mazedata[2] + mazedata[1][:-1] + mazedata[0]
+            occupiedPositions = mazedata[2] + mazedata[1][:-1] + mazedata[0][:-1]
             directions = (up, down, right, left)
-            if self.nOpponents != 0:#self.points <= self.opponentPoints and :
+            if self.nOpponents != 0: #and self.points <= self.opponentPoints
                 for x in directions: #Remover casos de colisão caso estejamos a perder
                     newX = (mazedata[1][0][0]+x[0])%self.mapsize[0]
                     newY = (mazedata[1][0][1]+x[1])%self.mapsize[1]
