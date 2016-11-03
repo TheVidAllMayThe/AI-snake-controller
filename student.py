@@ -6,7 +6,7 @@ from functools import reduce
 
 class StudentAgent(Snake):
     def __init__(self, body=[(0,0)] , direction=(1,0)):
-        super().__init__(body,direction,name="Student")
+        super().__init__(body,direction,name="HouseCleaning")
 
     def update(self,points=None, mapsize=None, count=None):
             self.nOpponents = len(points) - 1
