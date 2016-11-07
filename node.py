@@ -20,7 +20,7 @@ class Node:
 
     def getAction(self):
         node = self
-        action = None
+        action = self.action
         while node.parent != None:
             action = node.action
             node = node.parent
