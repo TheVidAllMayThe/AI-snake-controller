@@ -61,6 +61,7 @@ class SnakeGame:
         while (pos in self.obstacles):
             pos = random.randrange(1, self.hortiles), random.randrange(1, self.verttiles)
         return pos
+<<<<<<< HEAD
 
     def setObstacles(self,level):
         for i in range(1,level+1):
@@ -73,6 +74,28 @@ class SnakeGame:
                     lo=(lo[0],lo[1]+1)
                 if 0<lo[0]<=self.hortiles and 0<lo[1]<=self.verttiles :
                     self.obstacles.append(lo)
+=======
+    
+    def setObstacles(self,level, filename=None):
+        if filename != None:
+            image = pygame.image.load(filename)
+            pxarray = pygame.PixelArray(image)
+            for x in range(len(pxarray)):
+                for y in range(len(pxarray[x])):
+                    if pxarray[x][y] != 0:
+                        self.obstacles.append((x, y))
+        else:
+            for i in range(1,level+1):
+                lo=random.randrange(1,self.hortiles),random.randrange(1,self.verttiles) #last obstacle
+                self.obstacles.append(lo)
+                for j in range(1,random.randint(1,int(level/2))):
+                    if random.randint(1,2) == 1:
+                        lo=(lo[0]+1,lo[1])
+                    else:
+                        lo=(lo[0],lo[1]+1)
+                    if 0<lo[0]<=self.hortiles and 0<lo[1]<=self.verttiles :
+                        self.obstacles.append(lo)
+>>>>>>> cd0791dea7bfcace72c3b35932bcef922551730c
 
     def setPlayers(self,players):
         self.players=[]
@@ -173,8 +196,12 @@ class SnakeGame:
             self.updatePlayerInfo()
             self.generateFood() #generate food if necessary
             for player in [a for a in self.players if not a.IsDead]:
+                s = pygame.time.get_ticks()
                 maze = Maze(self.obstacles, self.playerpos, self.foodpos)   #just a copy of our information (avoid shameful agents that tinker with the game server)
                 player.agent.updateDirection(maze) #update game logic (only for alive players)
+                f = pygame.time.get_ticks()
+                if f-s > self.fps/2:
+                    player.point(-10)   #we penalize players that take longer then a half a tick§
             for player in self.players:
                 self.update(player)
             #print all the content in the screen
@@ -186,6 +213,11 @@ class SnakeGame:
                 pygame.draw.rect(self.screen,self.obscolor,(obstacle[0]*self.tilesize,obstacle[1]*self.tilesize,self.tilesize,self.tilesize),0)
 
             #print food
+            run = [-1,1,0]
+            self.foodpos= self.foodpos[0] + random.choice(run),  self.foodpos[1] + random.choice(run),
+            while (self.foodpos in self.playerpos or self.foodpos in self.obstacles or self.foodpos[0] > self.hortiles or self.foodpos[1] > self.verttiles or self.foodpos[0] < 0 or self.foodpos[1] < 0):
+                self.foodpos= self.foodpos[0] + random.choice(run),  self.foodpos[1] + random.choice(run),
             pygame.draw.rect(self.screen,self.foodcolor,(self.foodpos[0]*self.tilesize,self.foodpos[1]*self.tilesize,self.tilesize,self.tilesize),0)
+ 
             self.printstatus()
             pygame.display.update()
