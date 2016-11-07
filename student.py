@@ -42,7 +42,7 @@ class StudentAgent(Snake):
             return validDirections
 
     def distance(self,pos1, pos2):
-        return 1.5*min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
+        return min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
 
     def isGoal(self,mazedata):
         return mazedata[0][0] == mazedata[3]
@@ -56,12 +56,13 @@ class StudentAgent(Snake):
 
     def aStar(self, mazedata):
 
-        node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),self.direction,None)
+        actions = self.valid_actions(mazedata)
+        node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),actions[0] if actions != [] else self.direction,None)
         frontier = []
         heappush(frontier, node)
         explored = []
         depth = 0
-        while depth < 40:
+        while depth < 60:
             depth += 1
             if frontier == []:
                 return node
