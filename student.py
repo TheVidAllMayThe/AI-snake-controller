@@ -24,8 +24,16 @@ class StudentAgent(Snake):
         foodpos = maze.foodpos
         mazedata = (studentAgent,opponentsAgents,obstacles,foodpos) #Search for food
         finalNode = self.aStar(mazedata)
-        self.direction = finalNode.getAction()
-        print(studentAgent[0])
+
+        #TMP########################
+        if finalNode == None:
+            for action in self.valid_actions(mazedata,self.points,self.opponentPoints):
+                if self.valid_actions(self.result(mazedata, action),self.points,self.opponentPoints) != []:
+                    self.direction = action
+                    break
+
+        else:
+            self.direction = finalNode.getAction()
 
     def valid_actions(self,mazedata,points,oppPoints):
             validDirections = []
@@ -33,13 +41,10 @@ class StudentAgent(Snake):
             directions = (up, down, right, left)
             if self.nOpponents != 0 and points < oppPoints:
                 for x in directions: #Remover casos de colisão caso estejamos a perder
-                    newX = (mazedata[1][0][0]+x[0])%(self.mapsize[0])
-                    newY = (mazedata[1][0][1]+x[1])%(self.mapsize[1])
-                    occupiedPositions += [(newX, newY)]
+                    occupiedPositions += [((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])]
+
             for x in directions:
-                newX = (mazedata[0][0][0]+x[0])%(self.mapsize[0])
-                newY = (mazedata[0][0][1]+x[1])%(self.mapsize[1])
-                if (newX, newY) not in occupiedPositions:
+                if ((mazedata[0][0][0]+x[0])%self.mapsize[0], (mazedata[0][0][1]+x[1])%self.mapsize[1]) not in occupiedPositions:
                     validDirections += [x]
             return validDirections
 
@@ -56,8 +61,8 @@ class StudentAgent(Snake):
         return mazedata[0][0] == mazedata[3] or any(oppActions)
 
     def result(self,mazedata, action):
-        newX = (mazedata[0][0][0]+action[0]+self.mapsize[0]+1)%(self.mapsize[0]+1)
-        newY = (mazedata[0][0][1]+action[1]+self.mapsize[1]+1)%(self.mapsize[1]+1)
+        newX = (mazedata[0][0][0]+action[0]+self.mapsize[0])%(self.mapsize[0])
+        newY = (mazedata[0][0][1]+action[1]+self.mapsize[1])%(self.mapsize[1])
         playerpos = [(newX, newY)]
         playerpos += mazedata[0][:-1]
         return (playerpos,mazedata[1],mazedata[2],mazedata[3])
@@ -74,7 +79,7 @@ class StudentAgent(Snake):
                 return None
             node = heappop(frontier)
 
-            if self.isGoal(node.maze):
+            if self.isGoal(node.maze) and self.valid_actions(self.result(mazedata,node.getAction()),self.points,self.opponentPoints) != []:
                 return node
 
             if node.maze[0][0] not in explored:
@@ -89,4 +94,5 @@ class StudentAgent(Snake):
                 elif [x for x in frontier if x == child and x.costG > child.costG] != []:
                     frontier.remove(child)
                     heappush(frontier,child)
+
         return node
