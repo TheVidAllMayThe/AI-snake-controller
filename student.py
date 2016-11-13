@@ -15,7 +15,7 @@ class StudentAgent(Snake):
         if self.nOpponents == 0:
             self.opponentPoints = 0
         else:
-            self.opponentPoints = [ x[1] for x in points if x[0] != self.name ][0]
+            self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
 
     def updateDirection(self,maze):
         studentAgent = self.body
@@ -23,8 +23,9 @@ class StudentAgent(Snake):
         obstacles = maze.obstacles
         foodpos = maze.foodpos
         mazedata = (studentAgent,opponentsAgents,obstacles,foodpos) #Search for food
-        finalNode = self.aStar(mazedata) 
+        finalNode = self.aStar(mazedata)
         self.direction = finalNode.getAction()
+        print(studentAgent[0])
 
     def valid_actions(self,mazedata,points,oppPoints):
             validDirections = []
@@ -32,12 +33,12 @@ class StudentAgent(Snake):
             directions = (up, down, right, left)
             if self.nOpponents != 0 and points < oppPoints:
                 for x in directions: #Remover casos de colisão caso estejamos a perder
-                    newX = (mazedata[1][0][0]+x[0]+self.mapsize[0]+1)%(self.mapsize[0]+1)
-                    newY = (mazedata[1][0][1]+x[1]+self.mapsize[1]+1)%(self.mapsize[1]+1)
+                    newX = (mazedata[1][0][0]+x[0])%(self.mapsize[0])
+                    newY = (mazedata[1][0][1]+x[1])%(self.mapsize[1])
                     occupiedPositions += [(newX, newY)]
             for x in directions:
-                newX = (mazedata[0][0][0]+x[0]+self.mapsize[0]+1)%(self.mapsize[0]+1)
-                newY = (mazedata[0][0][1]+x[1]+self.mapsize[1]+1)%(self.mapsize[1]+1)
+                newX = (mazedata[0][0][0]+x[0])%(self.mapsize[0])
+                newY = (mazedata[0][0][1]+x[1])%(self.mapsize[1])
                 if (newX, newY) not in occupiedPositions:
                     validDirections += [x]
             return validDirections
