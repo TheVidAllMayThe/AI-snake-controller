@@ -1,4 +1,4 @@
-# Snake Game Version 1.0
+# Snake Game Version 1.0 
 # Initially based on the code provided by http://www.virtualanup.com at https://gist.githubusercontent.com/virtualanup/7254581/raw/d69804ce5b41f73aa847f4426098dca70b5a1294/snake2.py
 # Diogo Gomes <dgomes@av.it.pt>
 
@@ -10,7 +10,7 @@ from pygame.locals import *
 import constants
 import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-
+      
 class Maze:
     def __init__(self, o, p, f):
         self.obstacles = copy.deepcopy(o)
@@ -19,18 +19,20 @@ class Maze:
 
 class Player:
     def __init__(self, agent, color=(255,0,0)):
-        self.agent = agent
-        self.body = agent.body
+        self.agent = agent 
+        self.body = agent.body 
         self.name = agent.name
-        self.color = color
+        self.color = color 
         self.IsDead = False
         self.points = 0
     def kill(self):
         self.IsDead = True
         self.agent.IsDead = True
+        logging.info("Player <{}> died".format(self.name))
     def point(self, point):
         self.points+=point
         self.agent.points+=point
+        logging.info("Player <{}> points: {}".format(self.name, self.points))
 
 class SnakeGame:
     def __init__(self, hor=60, ver=40, tilesize=20, fps=50):
@@ -39,22 +41,22 @@ class SnakeGame:
         self.tilesize=tilesize  #tile size, adjust according to screen size
         self.hortiles=hor   #number of horizontal tiles
         self.verttiles=ver  #number of vertical tiles
-        self.screen = pygame.display.set_mode(((self.hortiles+1)*self.tilesize,(self.verttiles+1)*self.tilesize+25), pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode(((self.hortiles)*self.tilesize,(self.verttiles)*self.tilesize+25), pygame.RESIZABLE)
         pygame.display.set_caption('Python Snake')
-
+        
         #load the font
         self.font = pygame.font.Font(None, 30)
         self.obstacles=[]
         self.obscolor=(139,69,19)
         self.foodcolor=(0,255,0)
         self.foodpos=(0,0)
-        self.fps=50 #frames per second. The higher, the harder
+        self.fps=fps #frames per second. The higher, the harder
 
     def generateFood(self):
         if self.foodpos == (0,0):
-            self.foodpos=random.randrange(1,self.hortiles),random.randrange(1,self.verttiles)
+            self.foodpos=random.randrange(0,self.hortiles),random.randrange(0,self.verttiles)
             while (self.foodpos in self.playerpos or self.foodpos in self.obstacles):
-                self.foodpos=random.randrange(1,self.hortiles),random.randrange(1,self.verttiles)
+                self.foodpos=random.randrange(0,self.hortiles),random.randrange(0,self.verttiles)
 
     def playerPos(self):
         pos = random.randrange(1, self.hortiles), random.randrange(1, self.verttiles)
@@ -72,14 +74,14 @@ class SnakeGame:
                         self.obstacles.append((x, y))
         else:
             for i in range(1,level+1):
-                lo=random.randrange(1,self.hortiles),random.randrange(1,self.verttiles) #last obstacle
+                lo=random.randrange(0,self.hortiles),random.randrange(0,self.verttiles) #last obstacle
                 self.obstacles.append(lo)
-                for j in range(1,random.randint(1,int(level/2))):
+                for j in range(1,random.randint(1,level)):
                     if random.randint(1,2) == 1:
                         lo=(lo[0]+1,lo[1])
                     else:
                         lo=(lo[0],lo[1]+1)
-                    if 0<lo[0]<=self.hortiles and 0<lo[1]<=self.verttiles :
+                    if 0<=lo[0]<self.hortiles and 0<=lo[1]<self.verttiles :
                         self.obstacles.append(lo)
 
     def setPlayers(self,players):
@@ -94,23 +96,23 @@ class SnakeGame:
     def printstatus(self):
         PlayerStat = namedtuple('PlayerStat', 'name color points')
         players = [PlayerStat(p.name, p.color, p.points) for p in self.players + self.dead]
-
+       
         score = "{} vs {}".format(players[0].points, players[1].points)
         text = self.font.render(score, 1,(255,255,255))
-        textpos = text.get_rect(centerx=self.screen.get_width()/2,y=(self.verttiles+1)*self.tilesize)
+        textpos = text.get_rect(centerx=self.screen.get_width()/2,y=(self.verttiles)*self.tilesize)
 
 
         player1_name=self.font.render(players[0].name,1,players[0].color)
-        player1_pos = player1_name.get_rect(x=self.screen.get_width()/2 - self.font.size(score + players[0].name)[0],y=(self.verttiles+1)*self.tilesize)
+        player1_pos = player1_name.get_rect(x=self.screen.get_width()/2 - self.font.size(score + players[0].name)[0],y=(self.verttiles)*self.tilesize)
 
         player2_name=self.font.render(players[1].name,1,players[1].color)
-        player2_pos = player2_name.get_rect(x=self.screen.get_width()/2 + self.font.size(score)[0],y=(self.verttiles+1)*self.tilesize)
-
-
+        player2_pos = player2_name.get_rect(x=self.screen.get_width()/2 + self.font.size(score)[0],y=(self.verttiles)*self.tilesize)
+            
+        
         self.screen.blit(player1_name, player1_pos)
         self.screen.blit(player2_name, player2_pos)
         self.screen.blit(text, textpos)
-
+      
         text=None
         if len(self.players) == 1:
             text=self.font.render("{} is the Winner!".format(self.players[0].name),1,self.players[0].color)
@@ -119,7 +121,7 @@ class SnakeGame:
         if text != None:
             textpos = text.get_rect(centerx=self.screen.get_width()/2,centery=self.screen.get_height()/2)
             self.screen.blit(text, textpos)
-
+    
     def updatePlayerInfo(self):
         #update where the players are in the board just before updating the logic
         self.playerpos=[]
@@ -131,14 +133,13 @@ class SnakeGame:
         if snake.IsDead:
             self.players.remove(snake)
             self.dead.append(snake)
-            logging.info("Player <{}> is dead".format(snake.name))
             return
         #updates the snake...
         head=snake.body[0]#head of snake
         head=(head[0]+snake.agent.direction[0],head[1]+snake.agent.direction[1])
         #wrap the snake around the window
-        headx=self.hortiles if head[0]<0 else 0 if head[0]>self.hortiles else head[0]
-        heady=self.verttiles if head[1]<0 else 0 if head[1]>self.verttiles else head[1]
+        headx=self.hortiles-1 if head[0]<0 else 0 if head[0]>=self.hortiles else head[0]
+        heady=self.verttiles-1 if head[1]<0 else 0 if head[1]>=self.verttiles else head[1]
         head=(headx,heady)
         #update the body and see if the snake is dead
         alivelist=[alive for alive in reversed(self.players) if not alive.IsDead]
@@ -173,8 +174,8 @@ class SnakeGame:
                     for player in self.players:
                         player.agent.processkey(event.key)
                 elif event.type == pygame.VIDEORESIZE:
-                        self.tilesize = int(max(event.w/(self.hortiles+1), event.h/(self.verttiles+1)))
-                        self.screen = pygame.display.set_mode(((self.hortiles+1)*self.tilesize,(self.verttiles+1)*self.tilesize+25), pygame.RESIZABLE)
+                        self.tilesize = int(max(event.w/(self.hortiles), event.h/(self.verttiles)))
+                        self.screen = pygame.display.set_mode(((self.hortiles)*self.tilesize,(self.verttiles)*self.tilesize+25), pygame.RESIZABLE)
             self.count+=1
             self.screen.fill((0,0,0))
             #game logic is updated in the code below
@@ -186,8 +187,8 @@ class SnakeGame:
                 player.agent.updateDirection(maze) #update game logic (only for alive players)
                 f = pygame.time.get_ticks()
                 
-                logging.debug("Player <{}> took {}".format(player.name, f-s))
                 if f-s > 1000*(1/self.fps)/2:
+                    logging.debug("Player <{}> took {}".format(player.name, f-s))
                     player.point(-10)   #we penalize players that take longer then a half a tick§
             for player in self.players:
                 self.update(player)
@@ -201,9 +202,10 @@ class SnakeGame:
 
             #print food
             run = [-1,1,0]
-            self.foodpos= self.foodpos[0] + random.choice(run),  self.foodpos[1] + random.choice(run),
-            while (self.foodpos in self.playerpos or self.foodpos in self.obstacles or self.foodpos[0] > self.hortiles or self.foodpos[1] > self.verttiles or self.foodpos[0] < 0 or self.foodpos[1] < 0):
-                self.foodpos= self.foodpos[0] + random.choice(run),  self.foodpos[1] + random.choice(run),
+            neighbours = [((self.foodpos[0] + x)%self.hortiles, (self.foodpos[1] + y)%self.verttiles) for x in run for y in run]
+            valid_neighbours = [n for n in neighbours if not n in self.obstacles and not n in self.playerpos] 
+            self.foodpos = random.choice(valid_neighbours)
+
             pygame.draw.rect(self.screen,self.foodcolor,(self.foodpos[0]*self.tilesize,self.foodpos[1]*self.tilesize,self.tilesize,self.tilesize),0)
  
             self.printstatus()
