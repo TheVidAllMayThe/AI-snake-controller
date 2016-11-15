@@ -24,16 +24,7 @@ class StudentAgent(Snake):
         foodpos = maze.foodpos
         mazedata = (studentAgent,opponentsAgents,obstacles,foodpos) #Search for food
         finalNode = self.aStar(mazedata)
-
-        #TMP########################
-        if finalNode == None:
-            for action in self.valid_actions(mazedata,self.points,self.opponentPoints):
-                if self.valid_actions(self.result(mazedata, action),self.points,self.opponentPoints) != []:
-                    self.direction = action
-                    break
-
-        else:
-            self.direction = finalNode.getAction()
+        self.direction = finalNode.getAction()
 
     def valid_actions(self,mazedata,points,oppPoints):
             validDirections = []
@@ -56,8 +47,6 @@ class StudentAgent(Snake):
         if self.nOpponents > 0:
             oppMazedata = (mazedata[1],mazedata[0],mazedata[2],mazedata[3])
             oppActions = [self.valid_actions(self.result(oppMazedata,x),self.opponentPoints,self.points) == [] for x in self.valid_actions(oppMazedata,self.opponentPoints,self.points)]
-        if any(oppActions):
-            print("Intent to kill!")
         return mazedata[0][0] == mazedata[3] or any(oppActions)
 
     def result(self,mazedata, action):
@@ -76,7 +65,7 @@ class StudentAgent(Snake):
         explored = []
         while (pygame.time.get_ticks() - s) < (self.agent_time*0.9):
             if frontier == []:
-                return None
+                return node
             node = heappop(frontier)
 
             if self.isGoal(node.maze) and self.valid_actions(self.result(mazedata,node.getAction()),self.points,self.opponentPoints) != []:
