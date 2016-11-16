@@ -6,7 +6,9 @@ from node import Node
 from functools import reduce
 
 class StudentAgent(Snake):
-    def __init__(self, body=[(0,0)] , direction=(1,0)): super().__init__(body,direction,name="Pizza Delivery Robot 1.0")
+    def __init__(self, body=[(0,0)] , direction=(1,0)): 
+        super().__init__(body,direction,name="Pizza Delivery Robot 1.0")
+        self.node = None
 
     def update(self,points=None, mapsize=None, count=None, agent_time=None):
         self.agent_time = agent_time
@@ -18,22 +20,10 @@ class StudentAgent(Snake):
             self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
 
     def updateDirection(self,maze):
-        studentAgent = self.body
-        opponentsAgents = [x for x in maze.playerpos if x not in self.body]
-        obstacles = maze.obstacles
-        foodpos = maze.foodpos
-        mazedata = (studentAgent,opponentsAgents,obstacles,foodpos) #Search for food
+        opponentAgent = [x for x in maze.playerpos if x not in self.body]
+        mazedata = (self.body[:],opponentAgent,maze.obstacles[:],maze.foodpos) #Search for food
         finalNode = self.aStar(mazedata)
-
-        #TMP########################
-        if finalNode == None:
-            for action in self.valid_actions(mazedata,self.points,self.opponentPoints):
-                if self.valid_actions(self.result(mazedata, action),self.points,self.opponentPoints) != []:
-                    self.direction = action
-                    break
-
-        else:
-            self.direction = finalNode.getAction()
+        self.direction = finalNode.getAction()
 
     def valid_actions(self,mazedata,points,oppPoints):
             validDirections = []
@@ -56,8 +46,6 @@ class StudentAgent(Snake):
         if self.nOpponents > 0:
             oppMazedata = (mazedata[1],mazedata[0],mazedata[2],mazedata[3])
             oppActions = [self.valid_actions(self.result(oppMazedata,x),self.opponentPoints,self.points) == [] for x in self.valid_actions(oppMazedata,self.opponentPoints,self.points)]
-        if any(oppActions):
-            print("Intent to kill!")
         return mazedata[0][0] == mazedata[3] or any(oppActions)
 
     def result(self,mazedata, action):
@@ -65,30 +53,32 @@ class StudentAgent(Snake):
         newY = (mazedata[0][0][1]+action[1]+self.mapsize[1])%(self.mapsize[1])
         playerpos = [(newX, newY)]
         playerpos += mazedata[0][:-1]
-        return (playerpos,mazedata[1],mazedata[2],mazedata[3])
+        mazedata = (playerpos,mazedata[1],mazedata[2],mazedata[3])
+        return mazedata
 
-    def aStar(self, mazedata):
+    def aStar(self, mazedata,node = None):
         s = pygame.time.get_ticks()
         actions = self.valid_actions(mazedata,self.points,self.opponentPoints)
-        node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),actions[0] if actions != [] else self.direction,None)
+        if node == None:
+            node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),actions[0] if actions != [] else self.direction,None)
         frontier = []
         heappush(frontier, node)
         explored = []
         while (pygame.time.get_ticks() - s) < (self.agent_time*0.9):
             if frontier == []:
-                return None
+                return node
             node = heappop(frontier)
 
             if self.isGoal(node.maze) and self.valid_actions(self.result(mazedata,node.getAction()),self.points,self.opponentPoints) != []:
                 return node
 
             if node.maze[0][0] not in explored:
-                explored += [node.maze[0][0]]
+                explored += [(node.maze[0][0],node.action)]
             for x in self.valid_actions(node.maze,self.points,self.opponentPoints):
                 result = self.result(node.maze,x)
                 child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
 
-                if child.maze[0][0] not in explored and child not in frontier:
+                if (child.maze[0][0],child.action) not in explored and child not in frontier:
                     heappush(frontier,child)
 
                 elif [x for x in frontier if x == child and x.costG > child.costG] != []:
