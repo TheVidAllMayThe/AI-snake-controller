@@ -1,4 +1,4 @@
-Might get into a position where it has no way to escape after it eats
+IMPORTANT: Might get into a position where it has no way to escape after it eats
 
 Defensive mode?
 Offensive mode?
