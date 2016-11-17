@@ -2,6 +2,7 @@
 # Initially based on the code provided by http://www.virtualanup.com at https://gist.githubusercontent.com/virtualanup/7254581/raw/d69804ce5b41f73aa847f4426098dca70b5a1294/snake2.py
 # Diogo Gomes <dgomes@av.it.pt>
 import copy
+import sys
 from collections import namedtuple
 from sys import exit
 import pygame,random
@@ -23,6 +24,7 @@ class Player:
     def kill(self):
         self.IsDead = True
         self.agent.IsDead = True
+        self.point(-1000)
         logging.info("Player <{}> died".format(self.name))
     def point(self, point):
         self.points+=point
@@ -120,13 +122,14 @@ class SnakeGame:
             self.screen.blit(text, textpos)
       
         text=None
-        if len(self.players) == 1:
-            winner = "{} is the Winner!".format(self.players[0].name)
+        if len([p for p in self.players if not p.IsDead]) == 1:
+            w = [p for p in self.players if not p.IsDead][0]
+            winner = "{} is the Winner!".format(w.name)
             if self.screen == None:
                 logging.info(winner)
             else:
-                text=self.font.render(winner,1,self.players[0].color)
-        elif len(self.players) == 0:
+                text=self.font.render(winner,1,w.color)
+        elif len([p for p in self.players if not p.IsDead]) == 0:
             dead = "All dead..."
             if self.screen == None:
                 logging.info(dead)
@@ -140,14 +143,16 @@ class SnakeGame:
         #update where the players are in the board just before updating the logic
         self.playerpos=[]
         for player in self.players:
-            self.playerpos+=player.body
+            if not player.agent.IsDead:
+                self.playerpos+=player.body
             player.agent.update(points=[(a.name, a.points) for a in self.players], mapsize=(self.hortiles, self.verttiles), count=self.count, agent_time=1000*(1/self.fps)/2) #update game logic (only for alive players)
 
+    def gameKill(self, snake):
+       snake.kill()
+       self.updatePlayerInfo()
+       self.dead.append(snake)
+
     def update(self,snake):
-        if snake.IsDead:
-            self.players.remove(snake)
-            self.dead.append(snake)
-            return
         #updates the snake...
         head=snake.body[0]#head of snake
         head=(head[0]+snake.agent.direction[0],head[1]+snake.agent.direction[1])
@@ -160,11 +165,11 @@ class SnakeGame:
         for alive in alivelist:
             if head in alive.body:
                 if head == alive.body[0]:#in case of head to head collision, kill both of the snakes
-                    alive.kill()
-                snake.kill()
+                    self.gameKill(alive)
+                self.gameKill(snake)
                 return
         if head in self.obstacles:#hit an obstacle
-            snake.kill()
+            self.gameKill(snake)
             return
         elif head == self.foodpos:
             #the snake ate the food
@@ -179,11 +184,11 @@ class SnakeGame:
     def start(self):
         clock = pygame.time.Clock()
         self.count=0
-        while True:
+        while len([p for p in self.players if not p.IsDead]) > 1:
             clock.tick(self.fps)
             if self.screen != None:
                 for event in pygame.event.get():
-                    if event.type == QUIT or event.type == pygame.KEYDOWN and event.key == K_q: #close window or press Q
+                    if event.type == QUIT or (event.type == pygame.KEYDOWN and event.key == K_q): #close window or press Q
                         pygame.quit();
                         exit()
                     elif event.type == pygame.KEYDOWN:
@@ -210,10 +215,12 @@ class SnakeGame:
                 self.update(player)
         
             #move food
-            run = [-1,1,0]
-            neighbours = [((self.foodpos[0] + x)%self.hortiles, (self.foodpos[1] + y)%self.verttiles) for x in run for y in run]
-            valid_neighbours = [n for n in neighbours if not n in self.obstacles and not n in self.playerpos] 
-            self.foodpos = random.choice(valid_neighbours)
+            if self.foodpos != (0,0):
+                run = [-1,1,0]
+                neighbours = [((self.foodpos[0] + x + self.hortiles)%self.hortiles, (self.foodpos[1] + y + self.verttiles)%self.verttiles) for x in run for y in run]
+                print(neighbours)
+                valid_neighbours = [n for n in neighbours if not n in self.obstacles and not n in self.playerpos] 
+                self.foodpos = random.choice(valid_neighbours)
 
             
             #print all the content in the screen
@@ -231,3 +238,10 @@ class SnakeGame:
             self.printstatus()
             if self.screen != None:
                 pygame.display.update()
+
+
+        while self.screen != None:
+            event = pygame.event.wait()
+            if event.type == QUIT or (event.type == pygame.KEYDOWN and event.key == K_q): #close window or press Q
+                pygame.quit(); 
+                exit()

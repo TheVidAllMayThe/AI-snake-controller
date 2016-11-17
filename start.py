@@ -24,8 +24,9 @@ def main(argv):
     snake=SnakeGame(hor=60, ver=40, fps=20, visual=visual)
     snake.setObstacles(15,inputfile) #level of obstacles
     snake.setPlayers([  
-        Agent1([snake.playerPos()]),
-        Agent1([snake.playerPos()]),
+        Agent1([snake.playerPos()], name="Alice"),
+        Agent1([snake.playerPos()], name="Bob"),
+#        HumanSnake([snake.playerPos()], name="Meat"),
     ])
     snake.start()
 
