@@ -6,7 +6,7 @@ from node import Node
 from functools import reduce
 
 class StudentAgent(Snake):
-    def __init__(self, body=[(0,0)] , direction=(1,0)): 
+    def __init__(self, body=[(0,0)] , direction=(1,0)):
         super().__init__(body,direction,name="Pizza Delivery Robot 1.0")
         self.node = None
 
@@ -23,13 +23,14 @@ class StudentAgent(Snake):
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],maze.foodpos) #Search for food
         finalNode = self.aStar(mazedata)
+        self.obstacles = maze.obstacles[:]
         self.direction = finalNode.getAction()
 
     def valid_actions(self,mazedata,points,oppPoints):
             validDirections = []
             occupiedPositions = mazedata[2] + mazedata[1][:-1] + mazedata[0]
             directions = (up, down, right, left)
-            if self.nOpponents != 0 and points < oppPoints:
+            if self.nOpponents != 0 and points <= oppPoints:
                 for x in directions: #Remover casos de colisão caso estejamos a perder
                     occupiedPositions += [((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])]
 
@@ -55,6 +56,7 @@ class StudentAgent(Snake):
         playerpos += mazedata[0][:-1]
         mazedata = (playerpos,mazedata[1],mazedata[2],mazedata[3])
         return mazedata
+
 
     def aStar(self, mazedata,node = None):
         s = pygame.time.get_ticks()
