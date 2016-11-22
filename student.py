@@ -93,7 +93,7 @@ class student(Snake):
         remx = mapsizex4*4%self.mapsize[0]
         remy = mapsizey4*4%self.mapsize[1]
 
-        for x in range(5):
+        for x in range(4):
             self.areas += [ Area(self.mapsize[0]-remx,self.mapsize[0]-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
             self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,self.mapsize[1],self.mapsize[1]-remy,maze.obstacles,self.mapsize) ]
             self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
