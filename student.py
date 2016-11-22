@@ -99,7 +99,6 @@ class student(Snake):
             areas += Area(x*mapsizex4,(x+1)*mapsizex4-1,self.mapsize[1],self.mapsize[1]-remy,maze.obstacles,self.mapsize)
             areas += Area(x*mapsizex4,(x+1)*mapsizex4-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize)
 
-        for x in range(4): x*self.mapsize[0]/4
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],maze.foodpos) #Search for food
         finalNode = self.aStar(mazedata)
