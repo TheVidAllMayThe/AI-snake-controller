@@ -5,14 +5,14 @@ import pygame
 from node import Node
 from functools import reduce
 
-class area:
-    def __init__(minX,maxX,minY,maxY,obstacles):
+class Area:
+    def __init__(minX,maxX,minY,maxY,obstacles,mapsize):
         self.borders = [ (minX,maxX), (minY,maxY) ]
         self.gateways = {}
         #Upper gateway
         temp = []
-        for x in range(minX,maxX+1):
-            if (x,minY) not in obstacles and (x,minY) + up not in obstacles and x != maxX:
+        for x in range(minX,maxX+1): 
+            if (x,minY) not in obstacles and (x, (minY - 1)%mapsize[1]) not in obstacles and x != maxX:
                 temp += [(x,minY)]
             elif temp = []:
                 pass
@@ -27,7 +27,7 @@ class area:
         #Lower gateway
         temp = []
         for x in range(minX,maxX+1):
-            if (x,maxY) not in obstacles and (x,maxY) + down not in obstacles and x != maxX:
+            if (x,maxY) not in obstacles and (x, (maxY + 1)%mapsize[1]) not in obstacles and x != maxX:
                 temp += [(x,maxY)]
             elif temp = []:
                 pass
@@ -42,7 +42,7 @@ class area:
         #Left gateway
         temp = []
         for y in range(minY,maxY+1):
-            if (minX,y) not in obstacles and (minX,y) + left not in obstacles and y != maxY:
+            if (minX,y) not in obstacles and ((minX - 1)%mapsize[0], y) not in obstacles and y != maxY:
                 temp += [(minX,y)]
             elif temp = []:
                 pass
@@ -57,7 +57,7 @@ class area:
         #Right gateway
         temp = []
         for y in range(minY,maxY+1):
-            if (maxX,y) not in obstacles and (maxX,y) + right not in obstacles and y != maxY:
+            if (maxX,y) not in obstacles and ((maxX + 1)%mapsize[0], y) not in obstacles and y != maxY:
                 temp += [(maxX,y)]
             elif temp = []:
                 pass
@@ -68,6 +68,9 @@ class area:
             else:
                 self.gateways[temp[len(temp)//2]] = right
                 temp = []
+    
+    def isIn(self,pos):
+        return pos[0] in range(self.borders[0][0],self.borders[0][1]+1) and pos[1] in range(self.borders[1][0],self.borders[1][1])
 
 class student(Snake):
     def __init__(self, body=[(0,0)] , direction=(1,0),name="Pizza Boy aka Robot"):
@@ -84,6 +87,7 @@ class student(Snake):
             self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
 
     def updateDirection(self,maze):
+        for x in range(4): x*self.mapsize[0]/4
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],maze.foodpos) #Search for food
         finalNode = self.aStar(mazedata)
@@ -121,8 +125,10 @@ class student(Snake):
         mazedata = (playerpos,mazedata[1],mazedata[2],mazedata[3])
         return mazedata
 
+    def highLevelSearch(self):
+        actions = 
 
-    def aStar(self, mazedata,node = None):
+    def aStar(self, mazedata):
         s = pygame.time.get_ticks()
         actions = self.valid_actions(mazedata,self.points,self.opponentPoints)
         if node == None:
