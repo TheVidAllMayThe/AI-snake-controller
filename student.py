@@ -11,7 +11,7 @@ class Area:
         self.gateways = {}
         #Upper gateway
         temp = []
-        for x in range(minX,maxX+1): 
+        for x in range(minX,maxX+1):
             if (x,minY) not in obstacles and (x, (minY - 1)%mapsize[1]) not in obstacles and x != maxX:
                 temp += [(x,minY)]
             elif temp = []:
@@ -68,7 +68,7 @@ class Area:
             else:
                 self.gateways[temp[len(temp)//2]] = right
                 temp = []
-    
+
     def isIn(self,pos):
         return pos[0] in range(self.borders[0][0],self.borders[0][1]+1) and pos[1] in range(self.borders[1][0],self.borders[1][1])
 
@@ -87,6 +87,18 @@ class student(Snake):
             self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
 
     def updateDirection(self,maze):
+
+        areas = [];
+        mapsizex4 = mapsize[0]/4
+        mapsizey4 = mapsize[1]/4
+        remx = mapsize%mapsize[0]
+        remy = mapsize%mapsize[1]
+
+        for x in range(5):
+            areas += Area(self.mapsize[0]-remx,self.mapsize[0]-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize)
+            areas += Area(x*mapsizex4,(x+1)*mapsizex4-1,self.mapsize[1],self.mapsize[1]-remy,maze.obstacles,self.mapsize)
+            areas += Area(x*mapsizex4,(x+1)*mapsizex4-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize)
+
         for x in range(4): x*self.mapsize[0]/4
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],maze.foodpos) #Search for food
@@ -126,7 +138,7 @@ class student(Snake):
         return mazedata
 
     def highLevelSearch(self):
-        actions = 
+        actions =
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
