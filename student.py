@@ -136,14 +136,43 @@ class student(Snake):
         mazedata = (playerpos,mazedata[1],mazedata[2],mazedata[3])
         return mazedata
 
-    def highLevelSearch(self):
-        actions =
+    def highLevelSearch(self,head,foodpos):
+        square = None
+        for x in self.obstacles:
+            if x.isIn(head):
+                square = x
+                break
+        actions = square.gateways
+        node = Node(head, 0, self.distance(head,foodpos), None, None)
+        frontier = []
+        heappush(frontier, node)
+        explored = []
+        while True:
+            if frontier == []:
+                return None
+            node = heappop(frontier)
+
+            if square.isIn(foodpos):
+                return node
+
+            if node.maze not in explored:
+                explored += [node.maze]
+
+            for x in actions.keys:
+                head = (x[0] + actions[x][0], x[1] + actions[x][1])
+                child = Node(head, node.costG + self.distance(head,node.maze), self.distance(head,foodpos), x, node)
+
+                if head not in explored and child not in frontier:
+                    heappush(frontier,child)
+
+                elif [x for x in frontier if x == child and x.costG > child.costG] != []:
+                    frontier.remove(child)
+                    heappush(frontier,child)
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
         actions = self.valid_actions(mazedata,self.points,self.opponentPoints)
-        if node == None:
-            node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),actions[0] if actions != [] else self.direction,None)
+        node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),actions[0] if actions != [] else self.direction,None)
         frontier = []
         heappush(frontier, node)
         explored = []
