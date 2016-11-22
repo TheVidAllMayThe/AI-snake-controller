@@ -6,7 +6,7 @@ from node import Node
 from functools import reduce
 
 class Area:
-    def __init__(minX,maxX,minY,maxY,obstacles,mapsize):
+    def __init__(self,minX,maxX,minY,maxY,obstacles,mapsize):
         self.borders = [ (minX,maxX), (minY,maxY) ]
         self.gateways = {}
         #Upper gateway
@@ -14,7 +14,7 @@ class Area:
         for x in range(minX,maxX+1):
             if (x,minY) not in obstacles and (x, (minY - 1)%mapsize[1]) not in obstacles and x != maxX:
                 temp += [(x,minY)]
-            elif temp = []:
+            elif temp == []:
                 pass
             elif len(temp) > 5:
                 self.gateways[temp[0]] = up
@@ -29,7 +29,7 @@ class Area:
         for x in range(minX,maxX+1):
             if (x,maxY) not in obstacles and (x, (maxY + 1)%mapsize[1]) not in obstacles and x != maxX:
                 temp += [(x,maxY)]
-            elif temp = []:
+            elif temp == []:
                 pass
             elif len(temp) > 5:
                 self.gateways[temp[0]] = down
@@ -44,7 +44,7 @@ class Area:
         for y in range(minY,maxY+1):
             if (minX,y) not in obstacles and ((minX - 1)%mapsize[0], y) not in obstacles and y != maxY:
                 temp += [(minX,y)]
-            elif temp = []:
+            elif temp == []:
                 pass
             elif len(temp) > 5:
                 self.gateways[temp[0]] = left
@@ -59,7 +59,7 @@ class Area:
         for y in range(minY,maxY+1):
             if (maxX,y) not in obstacles and ((maxX + 1)%mapsize[0], y) not in obstacles and y != maxY:
                 temp += [(maxX,y)]
-            elif temp = []:
+            elif temp == []:
                 pass
             elif len(temp) > 5:
                 self.gateways[temp[0]] = right
@@ -86,18 +86,19 @@ class student(Snake):
         else:
             self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
 
-    def updateDirection(self,maze):
-
-        areas = [];
-        mapsizex4 = mapsize[0]/4
-        mapsizey4 = mapsize[1]/4
-        remx = mapsize%mapsize[0]
-        remy = mapsize%mapsize[1]
+    def updateDirection(self,maze): 
+        self.areas = [];
+        mapsizex4 = self.mapsize[0]//4
+        mapsizey4 = self.mapsize[1]//4
+        remx = mapsizex4*4%self.mapsize[0]
+        remy = mapsizey4*4%self.mapsize[1]
 
         for x in range(5):
-            areas += Area(self.mapsize[0]-remx,self.mapsize[0]-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize)
-            areas += Area(x*mapsizex4,(x+1)*mapsizex4-1,self.mapsize[1],self.mapsize[1]-remy,maze.obstacles,self.mapsize)
-            areas += Area(x*mapsizex4,(x+1)*mapsizex4-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize)
+            self.areas += [ Area(self.mapsize[0]-remx,self.mapsize[0]-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
+            self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,self.mapsize[1],self.mapsize[1]-remy,maze.obstacles,self.mapsize) ]
+            self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
+
+        print(self.highLevelSearch(self.body[0],maze.foodpos).maze)
 
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],maze.foodpos) #Search for food
@@ -137,20 +138,21 @@ class student(Snake):
         return mazedata
 
     def highLevelSearch(self,head,foodpos):
-        square = None
-        for x in self.obstacles:
-            if x.isIn(head):
-                square = x
-                break
-        actions = square.gateways
         node = Node(head, 0, self.distance(head,foodpos), None, None)
         frontier = []
         heappush(frontier, node)
         explored = []
+        square = None
         while True:
             if frontier == []:
                 return None
+
             node = heappop(frontier)
+            for x in self.areas:
+                if x.isIn(node.maze):
+                    square = x
+                    break
+            actions = square.gateways
 
             if square.isIn(foodpos):
                 return node
@@ -158,7 +160,7 @@ class student(Snake):
             if node.maze not in explored:
                 explored += [node.maze]
 
-            for x in actions.keys:
+            for x in actions.keys():
                 head = (x[0] + actions[x][0], x[1] + actions[x][1])
                 child = Node(head, node.costG + self.distance(head,node.maze), self.distance(head,foodpos), x, node)
 
