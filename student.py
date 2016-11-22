@@ -5,9 +5,73 @@ import pygame
 from node import Node
 from functools import reduce
 
-class StudentAgent(Snake):
-    def __init__(self, body=[(0,0)] , direction=(1,0)):
-        super().__init__(body,direction,name="Pizza Delivery Robot 1.0")
+class area:
+    def __init__(minX,maxX,minY,maxY,obstacles):
+        self.borders = [ (minX,maxX), (minY,maxY) ]
+        self.gateways = {}
+        #Upper gateway
+        temp = []
+        for x in range(minX,maxX+1):
+            if (x,minY) not in obstacles and (x,minY) + up not in obstacles and x != maxX:
+                temp += [(x,minY)]
+            elif temp = []:
+                pass
+            elif len(temp) > 5:
+                self.gateways[temp[0]] = up
+                self.gateways[temp[-1]] = up
+                temp = []
+            else:
+                self.gateways[temp[len(temp)//2]] = up
+                temp = []
+
+        #Lower gateway
+        temp = []
+        for x in range(minX,maxX+1):
+            if (x,maxY) not in obstacles and (x,maxY) + down not in obstacles and x != maxX:
+                temp += [(x,maxY)]
+            elif temp = []:
+                pass
+            elif len(temp) > 5:
+                self.gateways[temp[0]] = down
+                self.gateways[temp[-1]] = down
+                temp = []
+            else:
+                self.gateways[temp[len(temp)//2]] = down
+                temp = []
+
+        #Left gateway
+        temp = []
+        for y in range(minY,maxY+1):
+            if (minX,y) not in obstacles and (minX,y) + left not in obstacles and y != maxY:
+                temp += [(minX,y)]
+            elif temp = []:
+                pass
+            elif len(temp) > 5:
+                self.gateways[temp[0]] = left
+                self.gateways[temp[-1]] = left
+                temp = []
+            else:
+                self.gateways[temp[len(temp)//2]] = left
+                temp = []
+
+        #Right gateway
+        temp = []
+        for y in range(minY,maxY+1):
+            if (maxX,y) not in obstacles and (maxX,y) + right not in obstacles and y != maxY:
+                temp += [(maxX,y)]
+            elif temp = []:
+                pass
+            elif len(temp) > 5:
+                self.gateways[temp[0]] = right
+                self.gateways[temp[-1]] = right
+                temp = []
+            else:
+                self.gateways[temp[len(temp)//2]] = right
+                temp = []
+
+class student(Snake):
+    def __init__(self, body=[(0,0)] , direction=(1,0),name="Pizza Boy aka Robot"):
+        super().__init__(body,direction,name=name)
         self.node = None
 
     def update(self,points=None, mapsize=None, count=None, agent_time=None):
