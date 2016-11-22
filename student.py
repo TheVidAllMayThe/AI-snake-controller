@@ -55,7 +55,7 @@ class Area:
                 temp = []
 
         #Right gateway
-        temp = []
+        temp == []
         for y in range(minY,maxY+1):
             if (maxX,y) not in obstacles and ((maxX + 1)%mapsize[0], y) not in obstacles and y != maxY:
                 temp += [(maxX,y)]
