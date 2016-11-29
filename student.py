@@ -69,13 +69,25 @@ class Area:
                 self.gateways[temp[len(temp)//2]] = right
                 temp = []
 
+        self.dists = {(x,y):abs(x[0]-y[0])+abs(x[1]-y[1]) for x in self.gateways.keys() for y in self.gateways.keys() if x!=y}
+
+
+    def __str__(self):
+        return "Borders: "+str(self.borders)+" Gateways: "+str(self.gateways) + "\n"
+
+    def __lt__(self, other):
+        return self.borders[0][0] <= other.borders[0][0] if self.borders[0][0] != other.borders[0][0] else self.borders[1][0] <= other.borders[1][0]
+
     def isIn(self,pos):
-        return pos[0] in range(self.borders[0][0],self.borders[0][1]+1) and pos[1] in range(self.borders[1][0],self.borders[1][1])
+        return pos[0] in range(self.borders[0][0],self.borders[0][1]+1) and pos[1] in range(self.borders[1][0],self.borders[1][1]+1)
+
 
 class student(Snake):
     def __init__(self, body=[(0,0)] , direction=(1,0),name="Pizza Boy aka Robot"):
         super().__init__(body,direction,name=name)
         self.node = None
+        self.areas = [];
+
 
     def update(self,points=None, mapsize=None, count=None, agent_time=None):
         self.agent_time = agent_time
@@ -86,22 +98,41 @@ class student(Snake):
         else:
             self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
 
-    def updateDirection(self,maze): 
-        self.areas = [];
-        mapsizex4 = self.mapsize[0]//4
-        mapsizey4 = self.mapsize[1]//4
-        remx = mapsizex4*4%self.mapsize[0]
-        remy = mapsizey4*4%self.mapsize[1]
+    def updateDirection(self,maze):
+        ratio = 5
+        if self.areas == []:
+            mapsizex4 = self.mapsize[0]//ratio
+            mapsizey4 = self.mapsize[1]//ratio
+            remx = self.mapsize[0]%ratio
+            remy = self.mapsize[1]%ratio
 
-        for x in range(5):
-            self.areas += [ Area(self.mapsize[0]-remx,self.mapsize[0]-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
-            self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,self.mapsize[1],self.mapsize[1]-remy,maze.obstacles,self.mapsize) ]
-            self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
+            for x in range(0,ratio):
+                for y in range(0,ratio):
+                    self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,y*mapsizey4,(y+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
+                if remx != 0:
+                    self.areas += [ Area(self.mapsize[0]-remx,self.mapsize[0]-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
+                if remy != 0:
+                    self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,self.mapsize[1]-remy,self.mapsize[1]-1,maze.obstacles,self.mapsize) ]
 
-        print(self.highLevelSearch(self.body[0],maze.foodpos).maze)
+            if remx!= 0 and remy != 0:
+                self.areas += [ Area(self.mapsize[0]-remx,self.mapsize[0]-1,self.mapsize[1]-remy,self.mapsize[1]-1,maze.obstacles,self.mapsize) ]
+
+            self.areas.sort() #///////////////REMOVER DEPOIS///////////////////////////////////
+
+        goal = None
+
+        for x in self.areas:
+            if x.isIn(maze.foodpos) and x.isIn(self.body[0]):
+                goal = maze.foodpos
+                break
+            if x.isIn(self.body[0]):
+                headSquare = x
+
+        if goal == None:
+            goal = self.highLevelSearch(self.body[0],maze.foodpos).getAction()
 
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
-        mazedata = (self.body[:],opponentAgent,maze.obstacles[:],maze.foodpos) #Search for food
+        mazedata = (self.body[:],opponentAgent,maze.obstacles[:],goal) #Search for food
         finalNode = self.aStar(mazedata)
         self.obstacles = maze.obstacles[:]
         self.direction = finalNode.getAction()
@@ -113,7 +144,6 @@ class student(Snake):
             if self.nOpponents != 0 and points <= oppPoints:
                 for x in directions: #Remover casos de colisão caso estejamos a perder
                     occupiedPositions += [((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])]
-
             for x in directions:
                 if ((mazedata[0][0][0]+x[0])%self.mapsize[0], (mazedata[0][0][1]+x[1])%self.mapsize[1]) not in occupiedPositions:
                     validDirections += [x]
@@ -153,7 +183,6 @@ class student(Snake):
                     square = x
                     break
             actions = square.gateways
-
             if square.isIn(foodpos):
                 return node
 
@@ -161,8 +190,10 @@ class student(Snake):
                 explored += [node.maze]
 
             for x in actions.keys():
-                head = (x[0] + actions[x][0], x[1] + actions[x][1])
-                child = Node(head, node.costG + self.distance(head,node.maze), self.distance(head,foodpos), x, node)
+                head = (((x[0] + actions[x][0])%self.mapsize[0]), ((x[1] + actions[x][1])%self.mapsize[1]))
+                print(square.dists)
+                dist = square.dists[head,node.maze] if (head,node.maze) in square.dists else square.dists[node.maze,head]
+                child = Node(head, node.costG + dist, self.distance(head,foodpos), head, node)
 
                 if head not in explored and child not in frontier:
                     heappush(frontier,child)
