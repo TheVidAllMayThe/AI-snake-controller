@@ -6,6 +6,7 @@ from node import Node
 from functools import reduce
 
 class Area:
+    totalAreas = []
     def __init__(self,minX,maxX,minY,maxY,obstacles,mapsize):
         self.borders = [ (minX,maxX), (minY,maxY) ]
         self.gateways = {}
@@ -69,6 +70,10 @@ class Area:
                 self.gateways[temp[len(temp)//2]] = right
                 temp = []
 
+        for x in range(minX,maxX+1):
+            for y in range(minY,maxY+1):
+                Area.totalAreas += [(x,y)]
+
         self.dists = {(x,y):abs(x[0]-y[0])+abs(x[1]-y[1]) for x in self.gateways.keys() for y in self.gateways.keys() if x!=y}
 
 
@@ -100,12 +105,46 @@ class student(Snake):
 
     def updateDirection(self,maze):
         ratio = 5
+        self.obstacles = maze.obstacles[:]
+
         if self.areas == []:
             mapsizex4 = self.mapsize[0]//ratio
             mapsizey4 = self.mapsize[1]//ratio
             remx = self.mapsize[0]%ratio
             remy = self.mapsize[1]%ratio
+            for y in range(0,self.mapsize[1]):
+                for x in range(0,self.mapsize[0]):
+                    if (x,y) not in Area.totalAreas and (x,y) not in self.obstacles:
+                        xloopstart = x
+                        xloopend = -1
+                        for x2 in range(xloopstart, self.mapsize[0]):
+                            if (x2,y) in self.obstacles:
+                                xloopend = x2-1
+                                break
+                        xloopend = xloopend if xloopend != -1 else self.mapsize[0]-1
+                        yloopstart = y
+                        yloopend = -1
+                        breakPoint = False
+                        for y2 in range(yloopstart,self.mapsize[1]):
+                            for x2 in range(xloopstart, xloopend + 1):
+                                if (x2,y2) in self.obstacles or (x2,y2) in Area.totalAreas:
+                                    yloopend = y2 - 1
+                                    breakPoint = True
+                                    breakPoint
+                            if breakPoint == True:
+                                break
+                        yloopend = yloopend if yloopend != -1 else self.mapsize[1] - 1
+                        self.areas += [Area(xloopstart,xloopend,yloopstart,yloopend,self.obstacles,self.mapsize)]
+                        print(self.areas[-1])
+                        input()
 
+            for x in range(0,self.mapsize[0]):
+                for y in range(0,self.mapsize[1]):
+                    if (x,y) not in Area.totalAreas + self.obstacles:
+                        print((x,y))
+
+
+        """
             for x in range(0,ratio):
                 for y in range(0,ratio):
                     self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,y*mapsizey4,(y+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
@@ -130,11 +169,14 @@ class student(Snake):
 
         if goal == None:
             goal = self.highLevelSearch(self.body[0],maze.foodpos).getAction()
+        """
+        input()
 
+
+        goal = maze.foodpos
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],goal) #Search for food
         finalNode = self.aStar(mazedata)
-        self.obstacles = maze.obstacles[:]
         self.direction = finalNode.getAction()
 
     def valid_actions(self,mazedata,points,oppPoints):
