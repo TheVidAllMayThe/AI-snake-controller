@@ -2,7 +2,7 @@ from snake import Snake
 from constants import *
 from heapq import *
 import pygame
-from node import Node
+from node import *
 from functools import reduce
 
 class Area:
@@ -10,65 +10,54 @@ class Area:
     def __init__(self,minX,maxX,minY,maxY,obstacles,mapsize):
         self.borders = [ (minX,maxX), (minY,maxY) ]
         self.gateways = {}
+
         #Upper gateway
-        temp = []
         for x in range(minX,maxX+1):
-            if (x,minY) not in obstacles and (x, (minY - 1)%mapsize[1]) not in obstacles and x != maxX:
-                temp += [(x,minY)]
-            elif temp == []:
-                pass
-            elif len(temp) > 5:
-                self.gateways[temp[0]] = up
-                self.gateways[temp[-1]] = up
-                temp = []
-            else:
-                self.gateways[temp[len(temp)//2]] = up
-                temp = []
+            if x == maxX and (maxX,(minY+up[1])%mapsize[1]) not in obstacles:
+                self.gateways[(maxX,minY)] = [up] if (maxX,minY) not in self.gateways else self.gateways[(maxX,minY)] + [up]
+            elif (x-minX)%4 == 0:
+                if (x,(minY+up[1])%mapsize[1]) not in obstacles:
+                    self.gateways[(x,minY)] = [up] if (x,minY) not in self.gateways else self.gateways[(maxX,minY)] + [up]
+                elif x-1 > minX and (x-1,(minY+up[1])%mapsize[1])  not in obstacles:
+                    self.gateways[(x-1,minY)] = [up] if (x-1,minY) not in self.gateways else self.gateways[(x-1,minY)] + [up]
+                elif x+1 < maxX and (x+1,(minY+up[1])%mapsize[1])  not in obstacles:
+                    self.gateways[(x+1,minY)] = [up] if (x+1,minY) not in self.gateways else self.gateways[(x+1,minY)] + [up]
 
         #Lower gateway
-        temp = []
         for x in range(minX,maxX+1):
-            if (x,maxY) not in obstacles and (x, (maxY + 1)%mapsize[1]) not in obstacles and x != maxX:
-                temp += [(x,maxY)]
-            elif temp == []:
-                pass
-            elif len(temp) > 5:
-                self.gateways[temp[0]] = down
-                self.gateways[temp[-1]] = down
-                temp = []
-            else:
-                self.gateways[temp[len(temp)//2]] = down
-                temp = []
+            if x == maxX and (maxX,(maxY + down[1])%mapsize[1])  not in obstacles:
+                self.gateways[(maxX,maxY)] = [down] if (maxX,maxY) not in self.gateways else self.gateways[(maxX,maxY)] + [down]
+            elif (x-minX)%4 == 0:
+                if (x,(maxY + down[1])%mapsize[1]) not in obstacles:
+                    self.gateways[(x,maxY)] = [down] if (x,maxY) not in self.gateways else self.gateways[(maxX,maxY)] + [down]
+                elif x-1 > minX and (x-1,(maxY + down[1])%mapsize[1])  not in obstacles:
+                    self.gateways[(x-1,maxY)] = [down] if (x-1,maxY) not in self.gateways else self.gateways[(x-1,maxY)] + [down]
+                elif x+1 < maxX and (x+1,(maxY + down[1])%mapsize[1])  not in obstacles:
+                    self.gateways[(x+1,maxY)] = [down] if (x+1,maxY) not in self.gateways else self.gateways[(x+1,maxY)] + [down]
 
         #Left gateway
-        temp = []
         for y in range(minY,maxY+1):
-            if (minX,y) not in obstacles and ((minX - 1)%mapsize[0], y) not in obstacles and y != maxY:
-                temp += [(minX,y)]
-            elif temp == []:
-                pass
-            elif len(temp) > 5:
-                self.gateways[temp[0]] = left
-                self.gateways[temp[-1]] = left
-                temp = []
-            else:
-                self.gateways[temp[len(temp)//2]] = left
-                temp = []
+            if y == maxY and ((maxX+left[0])%mapsize[0],maxY) not in obstacles:
+                self.gateways[(maxX,maxY)] = [left] if (maxX,maxY) not in self.gateways else self.gateways[(maxX,maxY)] + [left]
+            elif (y-minY)%4 == 0:
+                if ((maxX+left[0])%mapsize[0],y) not in obstacles:
+                    self.gateways[(maxX,y)] = [left] if (maxX,y) not in self.gateways else self.gateways[(maxX,y)] + [left]
+                elif y-1 > minY and ((maxX+left[0])%mapsize[0],y-1) not in obstacles:
+                    self.gateways[(maxX,y-1)] = [left] if (maxX,y-1) not in self.gateways else self.gateways[(maxX,y-1)] + [left]
+                elif y+1 < maxY and ((maxX+left[0])%mapsize[0],y+1) not in obstacles:
+                    self.gateways[(maxX,y+1)] = [left] if (maxX,y+1) not in self.gateways else self.gateways[(minY,y+1)] + [left]
 
         #Right gateway
-        temp == []
         for y in range(minY,maxY+1):
-            if (maxX,y) not in obstacles and ((maxX + 1)%mapsize[0], y) not in obstacles and y != maxY:
-                temp += [(maxX,y)]
-            elif temp == []:
-                pass
-            elif len(temp) > 5:
-                self.gateways[temp[0]] = right
-                self.gateways[temp[-1]] = right
-                temp = []
-            else:
-                self.gateways[temp[len(temp)//2]] = right
-                temp = []
+            if y == maxY and ((minX+right[0])%mapsize[0],maxY) not in obstacles:
+                self.gateways[(minX,maxY)] = [right] if (minX,maxY) not in self.gateways else self.gateways[(minX,maxY)] + [right]
+            elif (y-minY)%4 == 0:
+                if ((minX+right[0])%mapsize[0],y) not in obstacles:
+                    self.gateways[(minX,y)] = [right] if (minX,y) not in self.gateways else self.gateways[(minX,y)] + [right]
+                elif y-1 > minY and ((minX+right[0])%mapsize[0],y-1) not in obstacles:
+                    self.gateways[(minX,y-1)] = [right] if (minX,y-1) not in self.gateways else self.gateways[(minX,y-1)] + [right]
+                elif y+1 < maxY and ((minX+right[0])%mapsize[0],y+1) not in obstacles:
+                    self.gateways[(minX,y+1)] = [right] if (minX,y+1) not in self.gateways else self.gateways[(minY,y+1)] + [right]
 
         for x in range(minX,maxX+1):
             for y in range(minY,maxY+1):
@@ -108,74 +97,35 @@ class student(Snake):
         self.obstacles = maze.obstacles[:]
 
         if self.areas == []:
-            mapsizex4 = self.mapsize[0]//ratio
-            mapsizey4 = self.mapsize[1]//ratio
-            remx = self.mapsize[0]%ratio
-            remy = self.mapsize[1]%ratio
             for y in range(0,self.mapsize[1]):
                 for x in range(0,self.mapsize[0]):
                     if (x,y) not in Area.totalAreas and (x,y) not in self.obstacles:
                         xloopstart = x
                         xloopend = -1
                         for x2 in range(xloopstart, self.mapsize[0]):
-                            if (x2,y) in self.obstacles:
-                                xloopend = x2-1
+                            if (x2,y) in self.obstacles or (x2,y) in Area.totalAreas:
+                                xloopend = x2-1 if x2 != xloopstart else x2
                                 break
                         xloopend = xloopend if xloopend != -1 else self.mapsize[0]-1
                         yloopstart = y
                         yloopend = -1
-                        breakPoint = False
                         for y2 in range(yloopstart,self.mapsize[1]):
+                            breakPoint = False
                             for x2 in range(xloopstart, xloopend + 1):
                                 if (x2,y2) in self.obstacles or (x2,y2) in Area.totalAreas:
-                                    yloopend = y2 - 1
+                                    yloopend = y2 - 1 if y2 != yloopstart else y2
                                     breakPoint = True
-                                    breakPoint
+                                    break
                             if breakPoint == True:
                                 break
                         yloopend = yloopend if yloopend != -1 else self.mapsize[1] - 1
                         self.areas += [Area(xloopstart,xloopend,yloopstart,yloopend,self.obstacles,self.mapsize)]
-                        print(self.areas[-1])
-                        input()
-
-            for x in range(0,self.mapsize[0]):
-                for y in range(0,self.mapsize[1]):
-                    if (x,y) not in Area.totalAreas + self.obstacles:
-                        print((x,y))
 
 
-        """
-            for x in range(0,ratio):
-                for y in range(0,ratio):
-                    self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,y*mapsizey4,(y+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
-                if remx != 0:
-                    self.areas += [ Area(self.mapsize[0]-remx,self.mapsize[0]-1,x*mapsizey4,(x+1)*mapsizey4-1,maze.obstacles,self.mapsize) ]
-                if remy != 0:
-                    self.areas += [ Area(x*mapsizex4,(x+1)*mapsizex4-1,self.mapsize[1]-remy,self.mapsize[1]-1,maze.obstacles,self.mapsize) ]
-
-            if remx!= 0 and remy != 0:
-                self.areas += [ Area(self.mapsize[0]-remx,self.mapsize[0]-1,self.mapsize[1]-remy,self.mapsize[1]-1,maze.obstacles,self.mapsize) ]
-
-            self.areas.sort() #///////////////REMOVER DEPOIS///////////////////////////////////
-
-        goal = None
-
-        for x in self.areas:
-            if x.isIn(maze.foodpos) and x.isIn(self.body[0]):
-                goal = maze.foodpos
-                break
-            if x.isIn(self.body[0]):
-                headSquare = x
-
-        if goal == None:
-            goal = self.highLevelSearch(self.body[0],maze.foodpos).getAction()
-        """
-        input()
-
-
-        goal = maze.foodpos
+        goal = self.highLevelSearch(self.body[0],maze.foodpos)
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],goal) #Search for food
+        print(mazedata)
         finalNode = self.aStar(mazedata)
         self.direction = finalNode.getAction()
 
@@ -209,40 +159,46 @@ class student(Snake):
         mazedata = (playerpos,mazedata[1],mazedata[2],mazedata[3])
         return mazedata
 
+
     def highLevelSearch(self,head,foodpos):
-        node = Node(head, 0, self.distance(head,foodpos), None, None)
+        s = pygame.time.get_ticks()
+        for x in self.areas:
+            if x.isIn(head) and x.isIn(foodpos):
+                return foodpos
+
+        node = HiNode(head, 0, self.distance(head,foodpos), None)
         frontier = []
         heappush(frontier, node)
         explored = []
         square = None
         while True:
             if frontier == []:
+                print("cenas")
                 return None
 
             node = heappop(frontier)
             for x in self.areas:
-                if x.isIn(node.maze):
+                if x.isIn(node.place):
                     square = x
                     break
-            actions = square.gateways
             if square.isIn(foodpos):
-                return node
+                print("cenas")
+                return node.getPlace()
 
-            if node.maze not in explored:
-                explored += [node.maze]
+            if node.place not in explored:
+                explored += [node.place]
 
-            for x in actions.keys():
-                head = (((x[0] + actions[x][0])%self.mapsize[0]), ((x[1] + actions[x][1])%self.mapsize[1]))
-                print(square.dists)
-                dist = square.dists[head,node.maze] if (head,node.maze) in square.dists else square.dists[node.maze,head]
-                child = Node(head, node.costG + dist, self.distance(head,foodpos), head, node)
+            for y in square.gateways.keys():
+                for x in square.gateways[y]:
+                    newPlace = ((x[0]+y[0])%self.mapsize[0],(x[1]+y[1])%self.mapsize[1])
+                    child = HiNode(newPlace, node.costG + self.distance(node.place, newPlace), self.distance(newPlace,foodpos), node)
 
-                if head not in explored and child not in frontier:
-                    heappush(frontier,child)
+                    if newPlace not in explored and child not in frontier:
+                        heappush(frontier,child)
 
-                elif [x for x in frontier if x == child and x.costG > child.costG] != []:
-                    frontier.remove(child)
-                    heappush(frontier,child)
+                    elif [x for x in frontier if x == child and x.costG > child.costG] != []:
+                        frontier.remove(child)
+                        heappush(frontier,child)
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
