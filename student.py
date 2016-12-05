@@ -8,10 +8,17 @@ from functools import reduce
 class Area:
     totalAreas = []
     def __init__(self,minX,maxX,minY,maxY,obstacles,mapsize):
+        self.minY = minY
+        self.maxY = maxY
+        self.minX = minX
+        self.maxX = maxX
         self.borders = [ (minX,maxX), (minY,maxY) ]
+        self.neighbours = {}
         self.gateways = {}
-
+        self.mapsize = mapsize
+        self.obstacles = obstacles
         #Upper gateway
+        """
         for x in range(minX,maxX+1):
             if x == maxX and (maxX,(minY+up[1])%mapsize[1]) not in obstacles:
                 self.gateways[(maxX,minY)] = [up] if (maxX,minY) not in self.gateways else self.gateways[(maxX,minY)] + [up]
@@ -29,7 +36,7 @@ class Area:
                 self.gateways[(maxX,maxY)] = [down] if (maxX,maxY) not in self.gateways else self.gateways[(maxX,maxY)] + [down]
             elif (x-minX)%4 == 0:
                 if (x,(maxY + down[1])%mapsize[1]) not in obstacles:
-                    self.gateways[(x,maxY)] = [down] if (x,maxY) not in self.gateways else self.gateways[(maxX,maxY)] + [down]
+                    self.gateways[(x,maxY)] = [down] if (x,maxY) not in self.gateways else self.gateways[(x,maxY)] + [down]
                 elif x-1 > minX and (x-1,(maxY + down[1])%mapsize[1])  not in obstacles:
                     self.gateways[(x-1,maxY)] = [down] if (x-1,maxY) not in self.gateways else self.gateways[(x-1,maxY)] + [down]
                 elif x+1 < maxX and (x+1,(maxY + down[1])%mapsize[1])  not in obstacles:
@@ -58,12 +65,45 @@ class Area:
                     self.gateways[(minX,y-1)] = [right] if (minX,y-1) not in self.gateways else self.gateways[(minX,y-1)] + [right]
                 elif y+1 < maxY and ((minX+right[0])%mapsize[0],y+1) not in obstacles:
                     self.gateways[(minX,y+1)] = [right] if (minX,y+1) not in self.gateways else self.gateways[(minY,y+1)] + [right]
+        """
 
         for x in range(minX,maxX+1):
             for y in range(minY,maxY+1):
                 Area.totalAreas += [(x,y)]
 
-        self.dists = {(x,y):abs(x[0]-y[0])+abs(x[1]-y[1]) for x in self.gateways.keys() for y in self.gateways.keys() if x!=y}
+    def getNeighbour(self, areas, coord):
+        if coord in self.obstacles:
+            return None
+
+        for area in areas:
+            if area.isIn(coord) and area != self:
+                return area
+
+        return None
+
+
+    def getneighbours(self, areas):
+        self.neighbours = set([area for x in self.gateways.keys() for y in self.gateways[x] for area in areas if area.isIn((x[0]+y[0],x[1]+y[1]))])
+
+        for y in range(self.minY,self.maxY+1):
+            neighbour = self.getNeighbour(areas,((self.minX-1)%self.mapsize[0],y))
+            if neighbour != None and neighbour not in self.neighbours:
+                self.neighbours.add(neighbour)
+                self.gateways[(self.minX,y)] = self.gateways[(self.minX,y)] + [left] if (self.minX,y) in self.gateways else [left]
+            neighbour = self.getNeighbour(areas,((self.maxX+1)%self.mapsize[0],y))
+            if neighbour != None and neighbour not in self.neighbours:
+                self.neighbours.add(neighbour)
+                self.gateways[(self.maxX,y)] = self.gateways[(self.maxX,y)] + [right] if (self.maxX,y) in self.gateways else [right]
+
+        for x in range(self.minX,self.maxX+1):
+            neighbour = self.getNeighbour(areas,(x,(self.minY-1)%self.mapsize[1]))
+            if neighbour != None and neighbour not in self.neighbours:
+                self.neighbours.add(neighbour)
+                self.gateways[(x,self.minY)] = self.gateways[(x,self.minY)] + [down] if (x,self.minY) in self.gateways else [down]
+            neighbour = self.getNeighbour(areas,(x,(self.maxY+1)%self.mapsize[1]))
+            if neighbour != None and neighbour not in self.neighbours:
+                self.neighbours.add(neighbour)
+                self.gateways[(x,self.maxY)] = self.gateways[(x,self.maxY)] + [up] if (x,self.maxY) in self.gateways else [up]
 
 
     def __str__(self):
@@ -120,12 +160,22 @@ class student(Snake):
                                 break
                         yloopend = yloopend if yloopend != -1 else self.mapsize[1] - 1
                         self.areas += [Area(xloopstart,xloopend,yloopstart,yloopend,self.obstacles,self.mapsize)]
+            countgate = 0
 
+            for area in self.areas:
+                area.getneighbours(self.areas)
+
+        countgate = 0
+        for area in self.areas:
+                for x in area.gateways.keys():
+                    for y in area.gateways[x]:
+                        countgate += len(y)
+        print(countgate)
 
         goal = self.highLevelSearch(self.body[0],maze.foodpos)
+        #goal = maze.foodpos
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],goal) #Search for food
-        print(mazedata)
         finalNode = self.aStar(mazedata)
         self.direction = finalNode.getAction()
 
@@ -162,28 +212,37 @@ class student(Snake):
 
     def highLevelSearch(self,head,foodpos):
         s = pygame.time.get_ticks()
+        square = None
+
         for x in self.areas:
-            if x.isIn(head) and x.isIn(foodpos):
-                return foodpos
+            if x.isIn(head):
+                if x.isIn(foodpos):
+                    return foodpos
+                square = x
 
         node = HiNode(head, 0, self.distance(head,foodpos), None)
+
         frontier = []
         heappush(frontier, node)
         explored = []
-        square = None
+        first = True
         while True:
+            print(square)
             if frontier == []:
-                print("cenas")
                 return None
 
             node = heappop(frontier)
-            for x in self.areas:
-                if x.isIn(node.place):
-                    square = x
-                    break
-            if square.isIn(foodpos):
-                print("cenas")
-                return node.getPlace()
+
+            if not first:
+                for x in square.neighbours:
+                    if x.isIn(node.place):
+                        square = x
+                        break
+
+                if square.isIn(foodpos):
+                    return node.getPlace()
+
+                first = False
 
             if node.place not in explored:
                 explored += [node.place]
