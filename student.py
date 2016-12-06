@@ -127,8 +127,10 @@ class student(Snake):
             for area in self.areas:
                 area.getneighbours(self.areas)
 
+        print("Foodpos: {}".format(maze.foodpos))
+        print("Self: {}".format(self.body[0]))
         goal = self.highLevelSearch(self.body[0],maze.foodpos)
-        #goal = maze.foodpos
+        print("Goal: {}".format(goal))
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],goal) #Search for food
         finalNode = self.aStar(mazedata)
@@ -175,6 +177,9 @@ class student(Snake):
             if x.isIn(head):
                 square = x
 
+        if food_pos_square == square:
+            return foodpos
+
         node = HiNode((head, (0, 0)), 0, self.distance(head,foodpos), None, square, self.mapsize)
 
         frontier = []
@@ -182,9 +187,7 @@ class student(Snake):
         explored = []
 
         while True:
-            print(len(frontier))
             if not frontier:
-                print(node.square)
                 return None
 
             node = heappop(frontier)
@@ -231,7 +234,6 @@ class student(Snake):
                 result = self.result(node.maze, x)
                 child = Node(result, node.costG + 1, self.distance(result[0][0], result[3]), x, node)
 
-                print(not [x for x in frontier if x == child and x.costG > child.costG])
 
                 if (child.maze[0][0], child.action) not in explored and child not in frontier:
                     heappush(frontier, child)
