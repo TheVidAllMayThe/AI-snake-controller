@@ -18,7 +18,7 @@ class Area:
         self.mapsize = mapsize
         self.obstacles = obstacles
         #Upper gateway
-        """
+
         for x in range(minX,maxX+1):
             if x == maxX and (maxX,(minY+up[1])%mapsize[1]) not in obstacles:
                 self.gateways[(maxX,minY)] = [up] if (maxX,minY) not in self.gateways else self.gateways[(maxX,minY)] + [up]
@@ -65,7 +65,7 @@ class Area:
                     self.gateways[(minX,y-1)] = [right] if (minX,y-1) not in self.gateways else self.gateways[(minX,y-1)] + [right]
                 elif y+1 < maxY and ((minX+right[0])%mapsize[0],y+1) not in obstacles:
                     self.gateways[(minX,y+1)] = [right] if (minX,y+1) not in self.gateways else self.gateways[(minY,y+1)] + [right]
-        """
+
 
         for x in range(minX,maxX+1):
             for y in range(minY,maxY+1):
@@ -170,7 +170,6 @@ class student(Snake):
                 for x in area.gateways.keys():
                     for y in area.gateways[x]:
                         countgate += len(y)
-        print(countgate)
 
         goal = self.highLevelSearch(self.body[0],maze.foodpos)
         #goal = maze.foodpos
@@ -227,14 +226,13 @@ class student(Snake):
         explored = []
         first = True
         while True:
-            print(square)
             if frontier == []:
                 return None
 
             node = heappop(frontier)
 
             if not first:
-                for x in square.neighbours:
+                for x in self.areas:
                     if x.isIn(node.place):
                         square = x
                         break
@@ -242,7 +240,7 @@ class student(Snake):
                 if square.isIn(foodpos):
                     return node.getPlace()
 
-                first = False
+            first = False
 
             if node.place not in explored:
                 explored += [node.place]
