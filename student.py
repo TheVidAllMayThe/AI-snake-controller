@@ -182,6 +182,7 @@ class student(Snake):
         explored = []
 
         while True:
+            print(len(frontier))
             if not frontier:
                 print(node.square)
                 return None
@@ -197,24 +198,15 @@ class student(Snake):
             for x in node.square.gateways:
                 newPlace = ((x[0][0]+x[1][0]) % self.mapsize[0], (x[0][1]+x[1][1]) % self.mapsize[1])
 
-                for neighbor in node.square.neighbours:
-                    if neighbor.isIn(newPlace):
-                        square = neighbor
+                for neighbour in node.square.neighbours:
+                    if neighbour.isIn(newPlace):
+                        square = neighbour
 
                 child = HiNode(x, node.costG + self.distance(node.get_gateway_result(),newPlace), self.distance(newPlace, foodpos), node, square, self.mapsize)
-
-
-                if node.square == square:
-                    print("nao está a ver que o novo ponto está noutra área")
-
-                else:
-                    print("está a ver que o novo ponto está noutra área")
-
-
                 if x not in explored and child not in frontier:
                     heappush(frontier,child)
 
-                elif not [x for x in frontier if x == child and x.costG > child.costG]:
+                elif [x for x in frontier if x == child and x.costG > child.costG]:
                     frontier.remove(child)
                     heappush(frontier,child)
 
