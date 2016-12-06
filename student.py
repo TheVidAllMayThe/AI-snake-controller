@@ -5,71 +5,30 @@ import pygame
 from node import *
 from functools import reduce
 
+
 class Area:
     totalAreas = []
-    def __init__(self,minX,maxX,minY,maxY,obstacles,mapsize):
+
+    def __init__(self, minX, maxX, minY, maxY, obstacles, mapsize):
         self.minY = minY
         self.maxY = maxY
         self.minX = minX
         self.maxX = maxX
         self.borders = [ (minX,maxX), (minY,maxY) ]
-        self.neighbours = {}
-        self.gateways = {}
-        self.mapsize = mapsize
+        self.neighbours = set()
+        self.gateways = set()
         self.obstacles = obstacles
-        #Upper gateway
+        self.mapsize = mapsize
 
-        for x in range(minX,maxX+1):
-            if x == maxX and (maxX,(minY+up[1])%mapsize[1]) not in obstacles:
-                self.gateways[(maxX,minY)] = [up] if (maxX,minY) not in self.gateways else self.gateways[(maxX,minY)] + [up]
-            elif (x-minX)%4 == 0:
-                if (x,(minY+up[1])%mapsize[1]) not in obstacles:
-                    self.gateways[(x,minY)] = [up] if (x,minY) not in self.gateways else self.gateways[(maxX,minY)] + [up]
-                elif x-1 > minX and (x-1,(minY+up[1])%mapsize[1])  not in obstacles:
-                    self.gateways[(x-1,minY)] = [up] if (x-1,minY) not in self.gateways else self.gateways[(x-1,minY)] + [up]
-                elif x+1 < maxX and (x+1,(minY+up[1])%mapsize[1])  not in obstacles:
-                    self.gateways[(x+1,minY)] = [up] if (x+1,minY) not in self.gateways else self.gateways[(x+1,minY)] + [up]
+        for x in range(minX, maxX+1):
+            for y in range(minY, maxY+1):
+                Area.totalAreas += [(x, y)]
 
-        #Lower gateway
-        for x in range(minX,maxX+1):
-            if x == maxX and (maxX,(maxY + down[1])%mapsize[1])  not in obstacles:
-                self.gateways[(maxX,maxY)] = [down] if (maxX,maxY) not in self.gateways else self.gateways[(maxX,maxY)] + [down]
-            elif (x-minX)%4 == 0:
-                if (x,(maxY + down[1])%mapsize[1]) not in obstacles:
-                    self.gateways[(x,maxY)] = [down] if (x,maxY) not in self.gateways else self.gateways[(x,maxY)] + [down]
-                elif x-1 > minX and (x-1,(maxY + down[1])%mapsize[1])  not in obstacles:
-                    self.gateways[(x-1,maxY)] = [down] if (x-1,maxY) not in self.gateways else self.gateways[(x-1,maxY)] + [down]
-                elif x+1 < maxX and (x+1,(maxY + down[1])%mapsize[1])  not in obstacles:
-                    self.gateways[(x+1,maxY)] = [down] if (x+1,maxY) not in self.gateways else self.gateways[(x+1,maxY)] + [down]
+    def __eq__(self, other):
+        return self.borders == other.borders
 
-        #Left gateway
-        for y in range(minY,maxY+1):
-            if y == maxY and ((maxX+left[0])%mapsize[0],maxY) not in obstacles:
-                self.gateways[(maxX,maxY)] = [left] if (maxX,maxY) not in self.gateways else self.gateways[(maxX,maxY)] + [left]
-            elif (y-minY)%4 == 0:
-                if ((maxX+left[0])%mapsize[0],y) not in obstacles:
-                    self.gateways[(maxX,y)] = [left] if (maxX,y) not in self.gateways else self.gateways[(maxX,y)] + [left]
-                elif y-1 > minY and ((maxX+left[0])%mapsize[0],y-1) not in obstacles:
-                    self.gateways[(maxX,y-1)] = [left] if (maxX,y-1) not in self.gateways else self.gateways[(maxX,y-1)] + [left]
-                elif y+1 < maxY and ((maxX+left[0])%mapsize[0],y+1) not in obstacles:
-                    self.gateways[(maxX,y+1)] = [left] if (maxX,y+1) not in self.gateways else self.gateways[(minY,y+1)] + [left]
-
-        #Right gateway
-        for y in range(minY,maxY+1):
-            if y == maxY and ((minX+right[0])%mapsize[0],maxY) not in obstacles:
-                self.gateways[(minX,maxY)] = [right] if (minX,maxY) not in self.gateways else self.gateways[(minX,maxY)] + [right]
-            elif (y-minY)%4 == 0:
-                if ((minX+right[0])%mapsize[0],y) not in obstacles:
-                    self.gateways[(minX,y)] = [right] if (minX,y) not in self.gateways else self.gateways[(minX,y)] + [right]
-                elif y-1 > minY and ((minX+right[0])%mapsize[0],y-1) not in obstacles:
-                    self.gateways[(minX,y-1)] = [right] if (minX,y-1) not in self.gateways else self.gateways[(minX,y-1)] + [right]
-                elif y+1 < maxY and ((minX+right[0])%mapsize[0],y+1) not in obstacles:
-                    self.gateways[(minX,y+1)] = [right] if (minX,y+1) not in self.gateways else self.gateways[(minY,y+1)] + [right]
-
-
-        for x in range(minX,maxX+1):
-            for y in range(minY,maxY+1):
-                Area.totalAreas += [(x,y)]
+    def __hash__(self):
+        return hash(tuple(self.borders))
 
     def getNeighbour(self, areas, coord):
         if coord in self.obstacles:
@@ -81,43 +40,46 @@ class Area:
 
         return None
 
-
     def getneighbours(self, areas):
-        self.neighbours = set([area for x in self.gateways.keys() for y in self.gateways[x] for area in areas if area.isIn((x[0]+y[0],x[1]+y[1]))])
 
         for y in range(self.minY,self.maxY+1):
-            neighbour = self.getNeighbour(areas,((self.minX-1)%self.mapsize[0],y))
-            if neighbour != None and neighbour not in self.neighbours:
+            neighbour = self.getNeighbour(areas, ((self.minX-1) % self.mapsize[0], y))
+            if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
-                self.gateways[(self.minX,y)] = self.gateways[(self.minX,y)] + [left] if (self.minX,y) in self.gateways else [left]
-            neighbour = self.getNeighbour(areas,((self.maxX+1)%self.mapsize[0],y))
-            if neighbour != None and neighbour not in self.neighbours:
-                self.neighbours.add(neighbour)
-                self.gateways[(self.maxX,y)] = self.gateways[(self.maxX,y)] + [right] if (self.maxX,y) in self.gateways else [right]
+                self.gateways.add(((self.minX, y), left))
 
-        for x in range(self.minX,self.maxX+1):
-            neighbour = self.getNeighbour(areas,(x,(self.minY-1)%self.mapsize[1]))
-            if neighbour != None and neighbour not in self.neighbours:
+            neighbour = self.getNeighbour(areas,((self.maxX+1) % self.mapsize[0],y))
+            if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
-                self.gateways[(x,self.minY)] = self.gateways[(x,self.minY)] + [down] if (x,self.minY) in self.gateways else [down]
-            neighbour = self.getNeighbour(areas,(x,(self.maxY+1)%self.mapsize[1]))
-            if neighbour != None and neighbour not in self.neighbours:
-                self.neighbours.add(neighbour)
-                self.gateways[(x,self.maxY)] = self.gateways[(x,self.maxY)] + [up] if (x,self.maxY) in self.gateways else [up]
+                self.gateways.add(((self.maxX, y), right))
 
+        for x in range(self.minX, self.maxX+1):
+            neighbour = self.getNeighbour(areas, (x, (self.minY-1) % self.mapsize[1]))
+            if neighbour is not None and neighbour not in self.neighbours:
+                self.neighbours.add(neighbour)
+                self.gateways.add(((x, self.minY), down))
+            neighbour = self.getNeighbour(areas, (x, (self.maxY+1) % self.mapsize[1]))
+            if neighbour is not None and neighbour not in self.neighbours:
+                self.neighbours.add(neighbour)
+                self.gateways.add(((x, self.maxY), up))
 
     def __str__(self):
-        return "Borders: "+str(self.borders)+" Gateways: "+str(self.gateways) + "\n"
+        neighbours = "["
+        for x in self.neighbours:
+            neighbours += " ((" + str(x.minX) + "," + str(x.maxX) + ")" + "(" + str(x.minY) + "," + str(x.maxY) +")) "
+        neighbours += "]"
+        return "Borders: "+str(self.borders)+" Gateways: "+str(self.gateways) + "\n" + "Neighbours: " + neighbours
 
     def __lt__(self, other):
         return self.borders[0][0] <= other.borders[0][0] if self.borders[0][0] != other.borders[0][0] else self.borders[1][0] <= other.borders[1][0]
 
-    def isIn(self,pos):
+    def isIn(self, pos):
         return pos[0] in range(self.borders[0][0],self.borders[0][1]+1) and pos[1] in range(self.borders[1][0],self.borders[1][1]+1)
 
 
 class student(Snake):
-    def __init__(self, body=[(0,0)] , direction=(1,0),name="Pizza Boy aka Robot"):
+
+    def __init__(self, body=[(0, 0)], direction=(1,0),name="Pizza Boy aka Robot"):
         super().__init__(body,direction,name=name)
         self.node = None
         self.areas = [];
@@ -160,16 +122,10 @@ class student(Snake):
                                 break
                         yloopend = yloopend if yloopend != -1 else self.mapsize[1] - 1
                         self.areas += [Area(xloopstart,xloopend,yloopstart,yloopend,self.obstacles,self.mapsize)]
-            countgate = 0
+
 
             for area in self.areas:
                 area.getneighbours(self.areas)
-
-        countgate = 0
-        for area in self.areas:
-                for x in area.gateways.keys():
-                    for y in area.gateways[x]:
-                        countgate += len(y)
 
         goal = self.highLevelSearch(self.body[0],maze.foodpos)
         #goal = maze.foodpos
@@ -214,48 +170,53 @@ class student(Snake):
         square = None
 
         for x in self.areas:
+            if x.isIn(foodpos):
+                food_pos_square = x
             if x.isIn(head):
-                if x.isIn(foodpos):
-                    return foodpos
                 square = x
 
-        node = HiNode(head, 0, self.distance(head,foodpos), None)
+        node = HiNode((head, (0, 0)), 0, self.distance(head,foodpos), None, square, self.mapsize)
 
         frontier = []
         heappush(frontier, node)
         explored = []
-        first = True
+
         while True:
-            if frontier == []:
+            if not frontier:
+                print(node.square)
                 return None
 
             node = heappop(frontier)
 
-            if not first:
-                for x in self.areas:
-                    if x.isIn(node.place):
-                        square = x
-                        break
+            if node.square == food_pos_square:
+                return node.getPlace()
 
-                if square.isIn(foodpos):
-                    return node.getPlace()
+            if node.get_gateway_result() not in explored:
+                explored += [node.gateway]
 
-            first = False
+            for x in node.square.gateways:
+                newPlace = ((x[0][0]+x[1][0]) % self.mapsize[0], (x[0][1]+x[1][1]) % self.mapsize[1])
 
-            if node.place not in explored:
-                explored += [node.place]
+                for neighbor in node.square.neighbours:
+                    if neighbor.isIn(newPlace):
+                        square = neighbor
 
-            for y in square.gateways.keys():
-                for x in square.gateways[y]:
-                    newPlace = ((x[0]+y[0])%self.mapsize[0],(x[1]+y[1])%self.mapsize[1])
-                    child = HiNode(newPlace, node.costG + self.distance(node.place, newPlace), self.distance(newPlace,foodpos), node)
+                child = HiNode(x, node.costG + self.distance(node.get_gateway_result(),newPlace), self.distance(newPlace, foodpos), node, square, self.mapsize)
 
-                    if newPlace not in explored and child not in frontier:
-                        heappush(frontier,child)
 
-                    elif [x for x in frontier if x == child and x.costG > child.costG] != []:
-                        frontier.remove(child)
-                        heappush(frontier,child)
+                if node.square == square:
+                    print("nao está a ver que o novo ponto está noutra área")
+
+                else:
+                    print("está a ver que o novo ponto está noutra área")
+
+
+                if x not in explored and child not in frontier:
+                    heappush(frontier,child)
+
+                elif not [x for x in frontier if x == child and x.costG > child.costG]:
+                    frontier.remove(child)
+                    heappush(frontier,child)
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
@@ -273,16 +234,19 @@ class student(Snake):
                 return node
 
             if node.maze[0][0] not in explored:
-                explored += [(node.maze[0][0],node.action)]
-            for x in self.valid_actions(node.maze,self.points,self.opponentPoints):
-                result = self.result(node.maze,x)
-                child = Node(result ,node.costG+1,self.distance(result[0][0],result[3]),x,node)
+                explored += [(node.maze[0][0], node.action)]
+            for x in self.valid_actions(node.maze, self.points,self.opponentPoints):
+                result = self.result(node.maze, x)
+                child = Node(result, node.costG + 1, self.distance(result[0][0], result[3]), x, node)
 
-                if (child.maze[0][0],child.action) not in explored and child not in frontier:
-                    heappush(frontier,child)
+                print(not [x for x in frontier if x == child and x.costG > child.costG])
+
+                if (child.maze[0][0], child.action) not in explored and child not in frontier:
+                    heappush(frontier, child)
+
 
                 elif [x for x in frontier if x == child and x.costG > child.costG] != []:
                     frontier.remove(child)
-                    heappush(frontier,child)
+                    heappush(frontier, child)
 
         return node
