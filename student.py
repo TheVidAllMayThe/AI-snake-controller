@@ -123,7 +123,24 @@ class student(Snake):
         ratio = 5
         self.obstacles = maze.obstacles[:]
 
-        if self.areas == []:
+        if self.areas == []: 
+            #Fill dead ends
+            actions = [up, right, down, left]
+            for x,y in [ (x,y) for x in range(0,self.mapsize[0]) for y in range(0,self.mapsize[1]) if (x,y) not in self.obstacles ]:
+                l = [ ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) for a in actions if ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) not in self.obstacles ] 
+                if len(l) <= 1:
+                    self.obstacles += [(x,y)]
+                    lt = l[:]
+                    xt = x
+                    yt = y
+                    while True:
+                        xt,yt = ((xt+lt[0][0])%self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
+                        lt = [ ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) for a in actions if ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) not in self.obstacles ] 
+                        if len(lt) != 1:
+                            break
+                        else:
+                            self.obstacles += [(xt,yt)]
+
             for y in range(0,self.mapsize[1]):
                 for x in range(0,self.mapsize[0]):
                     if (x,y) not in Area.totalAreas and (x,y) not in self.obstacles:
@@ -150,11 +167,12 @@ class student(Snake):
 
 
             for area in self.areas:
-                area.getneighbours(self.areas)
+                area.getneighbours(self.areas)            
+
 
         goal = self.highLevelSearch(self.body[0],maze.foodpos)
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
-        mazedata = (self.body[:],opponentAgent,maze.obstacles[:],goal) #Search for food
+        mazedata = (self.body[:],opponentAgent,self.obstacles[:],goal) #Search for food
         finalNode = self.aStar(mazedata)
         self.direction = finalNode.getAction()
 
