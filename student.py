@@ -129,7 +129,7 @@ class student(Snake):
             #Fill dead ends
             cenas1 = len(self.obstacles)
             actions = [up, right, down, left]
-            for x,y in [ (x,y) for x in range(0,self.mapsize[0]) for y in range(0,self.mapsize[1]) if (x,y) not in maze.obstacles ]:
+            for x,y in [ (x,y) for x in range(0,self.mapsize[0]) for y in range(0,self.mapsize[1]) if (x,y) not in self.obstacles ]:
                 l = [ ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) for a in actions if ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) not in self.obstacles ] 
                 if len(l) == 1:
                     self.obstacles += [(x,y)]
@@ -173,7 +173,6 @@ class student(Snake):
             for area in self.areas:
                 area.getneighbours(self.areas)            
 
-
         goal = self.highLevelSearch(self.body[0],maze.foodpos)
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,self.obstacles[:],goal) #Search for food
@@ -191,6 +190,12 @@ class student(Snake):
                 if ((mazedata[0][0][0]+x[0])%self.mapsize[0], (mazedata[0][0][1]+x[1])%self.mapsize[1]) not in occupiedPositions:
                     validDirections += [x]
             return validDirections
+
+    def deadend(self,mazedata):
+        actions = self.valid_actions(mazedata,self.points,self.opponentPoints)
+        if len(actions) > 1:
+            return False
+        return all([self.result(mazedata,x) for x in actions])
 
     def distance(self,pos1, pos2):
         return min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
@@ -256,7 +261,7 @@ class student(Snake):
                 elif [x for x in frontier if x == child and x.costG > child.costG]:
                     frontier.remove(child)
                     heappush(frontier,child)
-        return node.getPlace()
+        return foodpos
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
