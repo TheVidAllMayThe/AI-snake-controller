@@ -4,6 +4,7 @@ from heapq import *
 import pygame
 from node import *
 from functools import reduce
+import time
 
 
 class Area:
@@ -35,13 +36,12 @@ class Area:
             return None
 
         for area in areas:
-            if area.isIn(coord) and area != self:
+            if area.isIn(coord):
                 return area
 
         return None
 
     def getneighbours(self, areas):
-
         for y in range(self.minY,self.maxY+1):
             neighbour = self.getNeighbour(areas, ((self.minX-1) % self.mapsize[0], y))
             if neighbour is not None and neighbour not in self.neighbours:
@@ -57,11 +57,11 @@ class Area:
             neighbour = self.getNeighbour(areas, (x, (self.minY-1) % self.mapsize[1]))
             if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
-                self.gateways.add(((x, self.minY), down))
+                self.gateways.add(((x, self.minY), up))
             neighbour = self.getNeighbour(areas, (x, (self.maxY+1) % self.mapsize[1]))
             if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
-                self.gateways.add(((x, self.maxY), up))
+                self.gateways.add(((x, self.maxY), down))
 
     def __str__(self):
         neighbours = "["
@@ -127,10 +127,7 @@ class student(Snake):
             for area in self.areas:
                 area.getneighbours(self.areas)
 
-        print("Foodpos: {}".format(maze.foodpos))
-        print("Self: {}".format(self.body[0]))
         goal = self.highLevelSearch(self.body[0],maze.foodpos)
-        print("Goal: {}".format(goal))
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
         mazedata = (self.body[:],opponentAgent,maze.obstacles[:],goal) #Search for food
         finalNode = self.aStar(mazedata)
@@ -186,7 +183,7 @@ class student(Snake):
         heappush(frontier, node)
         explored = []
 
-        while True:
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.3):
             if not frontier:
                 return None
 
@@ -212,15 +209,16 @@ class student(Snake):
                 elif [x for x in frontier if x == child and x.costG > child.costG]:
                     frontier.remove(child)
                     heappush(frontier,child)
+        return node.getPlace()
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
         actions = self.valid_actions(mazedata,self.points,self.opponentPoints)
-        node = Node(mazedata, 0, self.distance(mazedata[0][0],mazedata[3]),actions[0] if actions != [] else self.direction,None)
+        node = Node(mazedata, 0, 2*self.distance(mazedata[0][0],mazedata[3]),actions[0] if actions != [] else self.direction,None)
         frontier = []
         heappush(frontier, node)
         explored = []
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.9):
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.65):
             if frontier == []:
                 return node
             node = heappop(frontier)
@@ -232,7 +230,7 @@ class student(Snake):
                 explored += [(node.maze[0][0], node.action)]
             for x in self.valid_actions(node.maze, self.points,self.opponentPoints):
                 result = self.result(node.maze, x)
-                child = Node(result, node.costG + 1, self.distance(result[0][0], result[3]), x, node)
+                child = Node(result, node.costG + 1, 2*self.distance(result[0][0], result[3]), x, node)
 
 
                 if (child.maze[0][0], child.action) not in explored and child not in frontier:
