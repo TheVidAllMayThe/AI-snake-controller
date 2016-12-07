@@ -56,11 +56,13 @@ class Area:
                     self.gateways.add(((self.minX, y-1), left))
 
                 current_neighbour = neighbour
+                count = 0
 
             if neighbour is None:
                 if current_neighbour is not None:
                     self.gateways.add(((self.minX, y-1), left))
                 current_neighbour = None
+                count = 0
 
             if neighbour == current_neighbour:
                 count += 1
@@ -125,10 +127,11 @@ class student(Snake):
 
         if self.areas == []: 
             #Fill dead ends
+            cenas1 = len(self.obstacles)
             actions = [up, right, down, left]
-            for x,y in [ (x,y) for x in range(0,self.mapsize[0]) for y in range(0,self.mapsize[1]) if (x,y) not in self.obstacles ]:
+            for x,y in [ (x,y) for x in range(0,self.mapsize[0]) for y in range(0,self.mapsize[1]) if (x,y) not in maze.obstacles ]:
                 l = [ ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) for a in actions if ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) not in self.obstacles ] 
-                if len(l) <= 1:
+                if len(l) == 1:
                     self.obstacles += [(x,y)]
                     lt = l[:]
                     xt = x
@@ -140,6 +143,7 @@ class student(Snake):
                             break
                         else:
                             self.obstacles += [(xt,yt)]
+            print(len(self.obstacles)-cenas1)
 
             for y in range(0,self.mapsize[1]):
                 for x in range(0,self.mapsize[0]):
