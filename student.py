@@ -39,14 +39,39 @@ class Area:
             if area.isIn(coord):
                 return area
 
-        return None
 
     def getneighbours(self, areas):
+
+        current_neighbour = None
+        count = 0
+
         for y in range(self.minY,self.maxY+1):
             neighbour = self.getNeighbour(areas, ((self.minX-1) % self.mapsize[0], y))
+
             if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
                 self.gateways.add(((self.minX, y), left))
+
+                if current_neighbour is not None:
+                    self.gateways.add(((self.minX, y-1), left))
+
+                current_neighbour = neighbour
+
+            if neighbour is None:
+                if current_neighbour is not None:
+                    self.gateways.add(((self.minX, y-1), left))
+                current_neighbour = None
+
+            if neighbour == current_neighbour:
+                count += 1
+                if count % 4 == 0:
+                    if ((self.minX - 1, y), left) not in self.obstacles:
+                        self.gateways.add(((self.minX, y), left))
+                    elif ((self.minX - 1, y-1), left) not in self.obstacles:
+                        self.gateways.add(((self.minX, y - 1), left))
+                    elif ((self.minX - 1, y + 1), left) not in self.obstacles:
+                        self.gateways.add(((self.minX, y + 1), left))
+
 
             neighbour = self.getNeighbour(areas,((self.maxX+1) % self.mapsize[0],y))
             if neighbour is not None and neighbour not in self.neighbours:
