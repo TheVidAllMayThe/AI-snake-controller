@@ -26,6 +26,14 @@ class Area:
                 Area.totalAreas += [(x, y)]
 
     def __eq__(self, other):
+        if self is None:
+            if other is None:
+                return True
+            else:
+                return False
+        else:
+            if other is None:
+                return False
         return self.borders == other.borders
 
     def __hash__(self):
@@ -42,53 +50,128 @@ class Area:
 
     def getneighbours(self, areas):
 
-        current_neighbour = None
-        count = 0
+        current_neighbour1 = None
+        count1 = 0
+        current_neighbour2 = None
+        count2 = 0
 
-        for y in range(self.minY,self.maxY+1):
+        for y in range(self.minY, self.maxY+1):
             neighbour = self.getNeighbour(areas, ((self.minX-1) % self.mapsize[0], y))
 
             if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
                 self.gateways.add(((self.minX, y), left))
 
-                if current_neighbour is not None:
+                if current_neighbour1 is not None:
                     self.gateways.add(((self.minX, y-1), left))
 
-                current_neighbour = neighbour
-                count = 0
+                current_neighbour1 = neighbour
+                count1 = 0
 
             if neighbour is None:
-                if current_neighbour is not None:
+                if current_neighbour1 is not None:
                     self.gateways.add(((self.minX, y-1), left))
-                current_neighbour = None
-                count = 0
+                current_neighbour1 = None
+                count1 = 0
 
-            if neighbour == current_neighbour:
-                count += 1
-                if count % 4 == 0:
-                    if ((self.minX - 1, y), left) not in self.obstacles:
+            elif neighbour == current_neighbour1:
+                count1 += 1
+                if count1 % 6 == 0:
+                    if ((self.minX - 1) % self.mapsize[0], y) not in self.obstacles:
                         self.gateways.add(((self.minX, y), left))
-                    elif ((self.minX - 1, y-1), left) not in self.obstacles:
+                    elif ((self.minX - 1) % self.mapsize[0], y-1) not in self.obstacles:
                         self.gateways.add(((self.minX, y - 1), left))
-                    elif ((self.minX - 1, y + 1), left) not in self.obstacles:
+                    elif ((self.minX - 1) % self.mapsize[0], y + 1) not in self.obstacles:
                         self.gateways.add(((self.minX, y + 1), left))
 
+            neighbour = self.getNeighbour(areas, ((self.maxX+1) % self.mapsize[0], y))
 
-            neighbour = self.getNeighbour(areas,((self.maxX+1) % self.mapsize[0],y))
             if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
                 self.gateways.add(((self.maxX, y), right))
 
+                if current_neighbour2 is not None:
+                    self.gateways.add(((self.maxX, y-1), right))
+
+                current_neighbour2 = neighbour
+                count2 = 0
+
+            if neighbour is None:
+                if current_neighbour2 is not None:
+                    self.gateways.add(((self.maxX, y - 1), right))
+                current_neighbour2 = None
+                count2 = 0
+
+            elif neighbour == current_neighbour2:
+                count2 += 1
+                if count2 % 6 == 0:
+                    if ((self.maxX + 1) % self.mapsize[0], y) not in self.obstacles:
+                        self.gateways.add(((self.maxX, y), right))
+                    elif ((self.maxX + 1) % self.mapsize[0], y - 1) not in self.obstacles:
+                        self.gateways.add(((self.maxX, y - 1), right))
+                    elif ((self.maxX + 1) % self.mapsize[0], y + 1) not in self.obstacles:
+                        self.gateways.add(((self.maxX, y + 1), right))
+
+        current_neighbour1 = None
+        count1 = 0
+        current_neighbour2 = None
+        count2 = 0
+
         for x in range(self.minX, self.maxX+1):
             neighbour = self.getNeighbour(areas, (x, (self.minY-1) % self.mapsize[1]))
+
             if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
                 self.gateways.add(((x, self.minY), up))
+
+                if current_neighbour1 is not None:
+                    self.gateways.add(((x-1, self.minY), up))
+
+                current_neighbour1 = neighbour
+                count1 = 0
+
+            if neighbour is None:
+                if current_neighbour1 is not None:
+                    self.gateways.add(((x-1, self.minY), up))
+                current_neighbour1 = None
+                count1 = 0
+
+            elif neighbour == current_neighbour1:
+                count1 += 1
+                if count1 % 6 == 0:
+                    if (x, (self.minY - 1) % self.mapsize[1]) not in self.obstacles:
+                        self.gateways.add(((x, self.minY), up))
+                    elif (x - 1, (self.minY - 1) % self.mapsize[1]) not in self.obstacles:
+                        self.gateways.add(((x - 1, self.minY), up))
+                    elif (x + 1, (self.minY - 1) % self.mapsize[1]) not in self.obstacles:
+                        self.gateways.add(((x + 1, self.minY), up))
+
+
             neighbour = self.getNeighbour(areas, (x, (self.maxY+1) % self.mapsize[1]))
+
             if neighbour is not None and neighbour not in self.neighbours:
                 self.neighbours.add(neighbour)
                 self.gateways.add(((x, self.maxY), down))
+                if current_neighbour2 is not None:
+                    self.gateways.add(((x - 1, self.maxY), down))
+                current_neighbour2 = neighbour
+                count2 = 0
+
+            if neighbour is None:
+                if current_neighbour2 is not None:
+                    self.gateways.add(((x - 1, self.maxY), down))
+                current_neighbour2 = None
+                count2 = 0
+
+            elif neighbour == current_neighbour2:
+                count2 += 1
+                if count2 % 6 == 0:
+                    if (x, (self.maxY + 1) % self.mapsize[1]) not in self.obstacles:
+                        self.gateways.add(((x, self.maxY), down))
+                    elif (x - 1, (self.maxY + 1) % self.mapsize[1]) not in self.obstacles:
+                        self.gateways.add(((x - 1, self.maxY), down))
+                    elif (x + 1, (self.maxY + 1) % self.mapsize[1]) not in self.obstacles:
+                        self.gateways.add(((x + 1, self.maxY), down))
 
     def __str__(self):
         neighbours = "["
@@ -110,7 +193,8 @@ class student(Snake):
         super().__init__(body,direction,name=name)
         self.node = None
         self.areas = [];
-
+        self.current_players_len = 2
+        self.first_search = True
 
     def update(self,points=None, mapsize=None, count=None, agent_time=None):
         self.agent_time = agent_time
@@ -125,12 +209,12 @@ class student(Snake):
         ratio = 5
         self.obstacles = maze.obstacles[:]
 
-        if self.areas == []: 
+        if not self.areas:
             #Fill dead ends
             cenas1 = len(self.obstacles)
             actions = [up, right, down, left]
             for x,y in [ (x,y) for x in range(0,self.mapsize[0]) for y in range(0,self.mapsize[1]) if (x,y) not in self.obstacles ]:
-                l = [ ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) for a in actions if ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) not in self.obstacles ] 
+                l = [ ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) for a in actions if ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) not in self.obstacles ]
                 if len(l) == 1:
                     self.obstacles += [(x,y)]
                     lt = l[:]
@@ -138,15 +222,15 @@ class student(Snake):
                     yt = y
                     while True:
                         xt,yt = ((xt+lt[0][0])%self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
-                        lt = [ ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) for a in actions if ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) not in self.obstacles ] 
+                        lt = [ ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) for a in actions if ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) not in self.obstacles ]
                         if len(lt) != 1:
                             break
                         else:
                             self.obstacles += [(xt,yt)]
-            print(len(self.obstacles)-cenas1)
 
-            for y in range(0,self.mapsize[1]):
-                for x in range(0,self.mapsize[0]):
+
+            for y in range(0, self.mapsize[1]):
+                for x in range(0, self.mapsize[0]):
                     if (x,y) not in Area.totalAreas and (x,y) not in self.obstacles:
                         xloopstart = x
                         xloopend = -1
@@ -160,26 +244,36 @@ class student(Snake):
                         for y2 in range(yloopstart,self.mapsize[1]):
                             breakPoint = False
                             for x2 in range(xloopstart, xloopend + 1):
-                                if (x2,y2) in self.obstacles or (x2,y2) in Area.totalAreas:
+                                if (x2,y2) in self.obstacles or (x2, y2) in Area.totalAreas:
                                     yloopend = y2 - 1 if y2 != yloopstart else y2
                                     breakPoint = True
                                     break
-                            if breakPoint == True:
+                            if breakPoint:
                                 break
                         yloopend = yloopend if yloopend != -1 else self.mapsize[1] - 1
-                        self.areas += [Area(xloopstart,xloopend,yloopstart,yloopend,self.obstacles,self.mapsize)]
+                        self.areas += [Area(xloopstart, xloopend, yloopstart, yloopend, self.obstacles, self.mapsize)]
 
 
             for area in self.areas:
-                area.getneighbours(self.areas)            
+                area.getneighbours(self.areas)
 
-        goal = self.highLevelSearch(self.body[0],maze.foodpos)
+
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
+
+        if len(self.body) + len(opponentAgent) != self.current_players_len:
+            self.first_search = True
+            self.current_players_len = len(self.body) + len(opponentAgent)
+
+        if self.first_search:
+            goal = maze.foodpos
+        else:
+            goal = self.highLevelSearch(self.body[0],maze.foodpos)
+
         mazedata = (self.body[:],opponentAgent,self.obstacles[:],goal) #Search for food
         finalNode = self.aStar(mazedata)
         self.direction = finalNode.getAction()
 
-    def valid_actions(self,mazedata,points,oppPoints):
+    def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
             occupiedPositions = mazedata[2] + mazedata[1][:-1] + mazedata[0]
             directions = (up, down, right, left)
@@ -191,23 +285,23 @@ class student(Snake):
                     validDirections += [x]
             return validDirections
 
-    def deadend(self,mazedata):
+    def deadend(self, mazedata):
         actions = self.valid_actions(mazedata,self.points,self.opponentPoints)
         if len(actions) > 1:
             return False
         return all([self.result(mazedata,x) for x in actions])
 
-    def distance(self,pos1, pos2):
+    def distance(self, pos1, pos2):
         return min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
 
-    def isGoal(self,mazedata):
+    def isGoal(self, mazedata):
         oppActions = [False]
         if self.nOpponents > 0:
             oppMazedata = (mazedata[1],mazedata[0],mazedata[2],mazedata[3])
             oppActions = [self.valid_actions(self.result(oppMazedata,x),self.opponentPoints,self.points) == [] for x in self.valid_actions(oppMazedata,self.opponentPoints,self.points)]
         return mazedata[0][0] == mazedata[3] or any(oppActions)
 
-    def result(self,mazedata, action):
+    def result(self, mazedata, action):
         newX = (mazedata[0][0][0]+action[0]+self.mapsize[0])%(self.mapsize[0])
         newY = (mazedata[0][0][1]+action[1]+self.mapsize[1])%(self.mapsize[1])
         playerpos = [(newX, newY)]
@@ -215,8 +309,7 @@ class student(Snake):
         mazedata = (playerpos,mazedata[1],mazedata[2],mazedata[3])
         return mazedata
 
-
-    def highLevelSearch(self,head,foodpos):
+    def highLevelSearch(self, head, foodpos):
         s = pygame.time.get_ticks()
         square = None
 
@@ -235,7 +328,7 @@ class student(Snake):
         heappush(frontier, node)
         explored = []
 
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.3):
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.65):
             if not frontier:
                 return None
 
@@ -261,17 +354,20 @@ class student(Snake):
                 elif [x for x in frontier if x == child and x.costG > child.costG]:
                     frontier.remove(child)
                     heappush(frontier,child)
-        return foodpos
+        return node.getPlace()
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
-        actions = self.valid_actions(mazedata,self.points,self.opponentPoints)
-        node = Node(mazedata, 0, 2*self.distance(mazedata[0][0],mazedata[3]),actions[0] if actions != [] else self.direction,None)
+        actions = self.valid_actions(mazedata,self.points, self.opponentPoints)
+        node = Node(mazedata, 0, 2*self.distance(mazedata[0][0], mazedata[3]),actions[0] if actions != [] else self.direction,None)
         frontier = []
         heappush(frontier, node)
         explored = []
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.65):
-            if frontier == []:
+
+        limit = (self.agent_time*0.9) if self.first_search else (self.agent_time*0.25)
+
+        while (pygame.time.get_ticks() - s) < limit:
+            if not frontier:
                 return node
             node = heappop(frontier)
 
@@ -284,13 +380,12 @@ class student(Snake):
                 result = self.result(node.maze, x)
                 child = Node(result, node.costG + 1, 2*self.distance(result[0][0], result[3]), x, node)
 
-
                 if (child.maze[0][0], child.action) not in explored and child not in frontier:
                     heappush(frontier, child)
 
-
-                elif [x for x in frontier if x == child and x.costG > child.costG] != []:
+                elif [x for x in frontier if x == child and x.costG > child.costG]:
                     frontier.remove(child)
                     heappush(frontier, child)
 
+        self.first_search = False
         return node
