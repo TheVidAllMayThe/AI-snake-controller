@@ -195,6 +195,9 @@ class student(Snake):
         self.areas = [];
         self.current_players_len = 2
         self.first_search = True
+        self.old_square = None
+        self.current_square = None
+
 
     def update(self,points=None, mapsize=None, count=None, agent_time=None):
         self.agent_time = agent_time
