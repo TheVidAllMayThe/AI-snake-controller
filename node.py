@@ -26,13 +26,14 @@ class Node:
 
 
 class HiNode:
-    def __init__(self, gateway, costG, costH, parent, square, mapsize):
+    def __init__(self, gateway, costG, costH, parent, square, predecessor_square, mapsize):
         self.gateway = gateway
         self.costG = costG
         self.costH = costH
         self.costF = costG + costH
         self.parent = parent
         self.square = square
+        self.predecessor_square = predecessor_square
         self.mapsize = mapsize
         self.depth = 0 if parent is None else parent.depth + 1
 
@@ -54,3 +55,6 @@ class HiNode:
         elif self.parent.parent is None:
             return self.get_gateway_result()
         return self.parent.getPlace()
+
+    def get_complete_path(self):
+        return [] if self.parent is None else self.parent.get_complete_path() + [self.get_gateway_result()]

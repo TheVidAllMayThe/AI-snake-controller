@@ -176,7 +176,7 @@ class Area:
     def __str__(self):
         neighbours = "["
         for x in self.neighbours:
-            neighbours += " ((" + str(x.minX) + "," + str(x.maxX) + ")" + "(" + str(x.minY) + "," + str(x.maxY) +")) "
+            neighbours += " ((" + str(x.minX) + "," + str(x.maxX) + ")" + "(" + str(x.minY) + "," + str(x.maxY) + ")) "
         neighbours += "]"
         return "Borders: "+str(self.borders)+" Gateways: "+str(self.gateways) + "\n" + "Neighbours: " + neighbours
 
@@ -189,7 +189,7 @@ class Area:
 
 class student(Snake):
 
-    def __init__(self, body=[(0, 0)], direction=(1,0),name="Pizza Boy aka Robot"):
+    def __init__(self, body=[(0, 0)], direction=(1,0), name="Pizza Boy aka Robot"):
         super().__init__(body,direction,name=name)
         self.node = None
         self.areas = [];
@@ -197,7 +197,12 @@ class student(Snake):
         self.first_search = True
         self.old_square = None
         self.current_square = None
-
+        self.food_pos_square = None
+        self.frontier = []
+        self.explored = []
+        self.first_high_search = True
+        self.calculated_path = None
+        self.calculated = False
 
     def update(self,points=None, mapsize=None, count=None, agent_time=None):
         self.agent_time = agent_time
@@ -231,7 +236,6 @@ class student(Snake):
                         else:
                             self.obstacles += [(xt,yt)]
 
-
             for y in range(0, self.mapsize[1]):
                 for x in range(0, self.mapsize[0]):
                     if (x,y) not in Area.totalAreas and (x,y) not in self.obstacles:
@@ -256,10 +260,8 @@ class student(Snake):
                         yloopend = yloopend if yloopend != -1 else self.mapsize[1] - 1
                         self.areas += [Area(xloopstart, xloopend, yloopstart, yloopend, self.obstacles, self.mapsize)]
 
-
             for area in self.areas:
                 area.getneighbours(self.areas)
-
 
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
 
@@ -269,8 +271,10 @@ class student(Snake):
 
         if self.first_search:
             goal = maze.foodpos
+
         else:
-            goal = self.highLevelSearch(self.body[0],maze.foodpos)
+            goal = self.highLevelSearch(self.body[0], maze.foodpos)
+
 
         mazedata = (self.body[:],opponentAgent,self.obstacles[:],goal) #Search for food
         finalNode = self.aStar(mazedata)
@@ -279,7 +283,7 @@ class student(Snake):
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
             occupiedPositions = mazedata[2] + mazedata[1][:-1] + mazedata[0]
-            directions = (up, down, right, left)
+            directions = (up, left, down, right)
             if self.nOpponents != 0 and points <= oppPoints:
                 for x in directions: #Remover casos de colisão caso estejamos a perder
                     occupiedPositions += [((mazedata[1][0][0]+x[0])%self.mapsize[0], (mazedata[1][0][1]+x[1])%self.mapsize[1])]
@@ -315,6 +319,7 @@ class student(Snake):
     def highLevelSearch(self, head, foodpos):
         s = pygame.time.get_ticks()
         square = None
+        food_pos_square = None
 
         for x in self.areas:
             if x.isIn(foodpos):
@@ -322,42 +327,62 @@ class student(Snake):
             if x.isIn(head):
                 square = x
 
+        print(self.calculated_path)
         if food_pos_square == square:
             return foodpos
 
-        node = HiNode((head, (0, 0)), 0, self.distance(head,foodpos), None, square, self.mapsize)
+        if food_pos_square != self.food_pos_square:
+            self.food_pos_square = food_pos_square
+            self.frontier = []
+            self.explored = []
+            self.calculated = False
+            self.first_high_search = True
 
-        frontier = []
-        heappush(frontier, node)
-        explored = []
+        if self.calculated:
+            if head == self.calculated_path[0]:
+                self.calculated_path = self.calculated_path[1:]
+            return self.calculated_path[0]
+
+        if self.first_high_search:
+            self.node = HiNode((head, (0, 0)), 0, self.distance(head, foodpos), None, square, None, self.mapsize)
+            heappush(self.frontier, self.node)
+            self.first_high_search = False
+        else:
+            heappush(self.frontier, self.node)
 
         while (pygame.time.get_ticks() - s) < (self.agent_time*0.65):
-            if not frontier:
+
+            if not self.frontier:
                 return None
 
-            node = heappop(frontier)
+            self.node = heappop(self.frontier)
 
-            if node.square == food_pos_square:
-                return node.getPlace()
+            if self.node.square == self.food_pos_square:
+                self.calculated_path = self.node.get_complete_path()
+                self.calculated = True
+                return self.calculated_path[0]
 
-            if node.get_gateway_result() not in explored:
-                explored += [node.gateway]
+            if self.node.gateway not in self.explored:
+                self.explored += [self.node.gateway]
 
-            for x in node.square.gateways:
+            for x in self.node.square.gateways:
                 newPlace = ((x[0][0]+x[1][0]) % self.mapsize[0], (x[0][1]+x[1][1]) % self.mapsize[1])
 
-                for neighbour in node.square.neighbours:
+                for neighbour in self.node.square.neighbours:
                     if neighbour.isIn(newPlace):
                         square = neighbour
 
-                child = HiNode(x, node.costG + self.distance(node.get_gateway_result(),newPlace), self.distance(newPlace, foodpos), node, square, self.mapsize)
-                if x not in explored and child not in frontier:
-                    heappush(frontier,child)
+                child = HiNode(x, self.node.costG + self.distance(self.node.get_gateway_result(), newPlace), self.distance(newPlace, foodpos), self.node, square, self.node.square, self.mapsize)
+                if x not in self.explored and child not in self.frontier:
+                    heappush(self.frontier, child)
 
-                elif [x for x in frontier if x == child and x.costG > child.costG]:
-                    frontier.remove(child)
-                    heappush(frontier,child)
-        return node.getPlace()
+
+                elif [x for x in self.frontier if x == child and x.costG > child.costG]:
+                    self.frontier.remove(child)
+                    heappush(self.frontier, child)
+
+        return self.node.getPlace()
+
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
@@ -374,12 +399,12 @@ class student(Snake):
                 return node
             node = heappop(frontier)
 
-            if self.isGoal(node.maze) and self.valid_actions(self.result(mazedata,node.getAction()),self.points,self.opponentPoints) != []:
+            if self.isGoal(node.maze) and self.valid_actions(self.result(mazedata, node.getAction()), self.points, self.opponentPoints):
                 return node
 
             if node.maze[0][0] not in explored:
                 explored += [(node.maze[0][0], node.action)]
-            for x in self.valid_actions(node.maze, self.points,self.opponentPoints):
+            for x in self.valid_actions(node.maze, self.points, self.opponentPoints):
                 result = self.result(node.maze, x)
                 child = Node(result, node.costG + 1, 2*self.distance(result[0][0], result[3]), x, node)
 
