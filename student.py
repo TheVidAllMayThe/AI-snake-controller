@@ -5,7 +5,7 @@ import pygame
 from node import *
 import random
 from game import SnakeGame
-
+import time
 
 
 class Area:
@@ -294,7 +294,7 @@ class student(Snake):
 
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
-            occupiedPositions = mazedata[2] + mazedata[1][:-1] + mazedata[0]
+            occupiedPositions = mazedata[2] + mazedata[1] + mazedata[0]
             directions = (up, left, down, right)
             if self.nOpponents != 0 and points <= oppPoints:
                 for x in directions: #Remover casos de colisão caso estejamos a perder
@@ -307,17 +307,17 @@ class student(Snake):
     def deadEnds(self,snake1,snake2,obstacles):
         actions = [up,down,left,right]
         deadends = []
-        for block in snake1[1:-1]:
+        for block in snake1[:-1]:
             for x in [ ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) for a in actions if ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) not in snake1 + snake2 + obstacles + deadends]:
-                l = [ a for a in actions if ( ( x[0] + a[0] ) % self.mapsize[0], ( x[1] + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:-1] + snake2[1:-1]]
+                l = [ a for a in actions if ( ( x[0] + a[0] ) % self.mapsize[0], ( x[1] + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:] + snake2[1:]]
                 if len(l) == 1:
-                    deadends += l
+                    deadends += [x] 
                     lt = l[:]
                     xt = x[0]
                     yt = x[1]
                     while True:
                         xt,yt = ((xt+lt[0][0])%self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
-                        lt = [ a for a in actions if ( ( xt + a[0] ) % self.mapsize[0], ( yt + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:-1] + snake2[1:-1] ]
+                        lt = [ a for a in actions if ( ( xt + a[0] ) % self.mapsize[0], ( yt + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:] + snake2[1:] ]
                         if len(lt) != 1:
                             break
                         deadends += [(xt,yt)]
@@ -353,7 +353,6 @@ class student(Snake):
             if x.isIn(head):
                 square = x
 
-        print(self.calculated_path)
         if food_pos_square == square:
             return foodpos
 
