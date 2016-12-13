@@ -10,7 +10,7 @@ from pygame.locals import *
 from constants import *
 from maze import Maze
 from netagent import NetAgent
-
+import time
 import logging
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG) 
@@ -38,7 +38,7 @@ class Player:
         logging.info("Player <{}> points: {}".format(self.name, self.points))
 
 class SnakeGame:
-    def __init__(self, hor=60, ver=40, tilesize=20, fps=50, visual=False, obstacles=15, mapa=None):
+    def __init__(self, hor=60, ver=40, tilesize=15, fps=50, visual=False, obstacles=15, mapa=None):
         self.tilesize=tilesize  #tile size, adjust according to screen size
         self.hortiles=hor   #number of horizontal tiles
         self.verttiles=ver  #number of vertical tiles
@@ -53,6 +53,8 @@ class SnakeGame:
             #create the window and do other stuff
             pygame.init()
             self.screen = pygame.display.set_mode(((self.hortiles)*self.tilesize,(self.verttiles)*self.tilesize+25), pygame.RESIZABLE)
+            self.screen2 = pygame.display.set_mode(((self.hortiles)*self.tilesize,(self.verttiles)*self.tilesize+25), pygame.RESIZABLE)
+            self.screen2.set_alpha(255)
             pygame.display.set_caption('Python Snake')
         
             #load the font
@@ -158,7 +160,7 @@ class SnakeGame:
         for player in self.players:
             if not player.agent.IsDead:
                 self.playerpos+=player.body
-            player.agent.update(points=[(a.name, a.points) for a in self.players], mapsize=(self.hortiles, self.verttiles), count=self.count, agent_time=1000*(1/self.fps)/2) #update game logic (only for alive players)
+            player.agent.update(points=[(a.name, a.points) for a in self.players], mapsize=(self.hortiles, self.verttiles), count=self.count, agent_time=1000*(1/self.fps)/2, game=self) #update game logic (only for alive players)
 
     def gameKill(self, snake):
        snake.kill()
@@ -280,3 +282,9 @@ class SnakeGame:
             if event.type == QUIT or (event.type == pygame.KEYDOWN and event.key == K_q): #close window or press Q
                 pygame.quit(); 
                 exit()
+
+    def paint(self, area_list, colour):
+
+        for coord in area_list:
+            pygame.draw.rect(self.screen2, pygame.Color(colour[0], colour[1], colour[2], 240), (coord[0] * self.tilesize, coord[1] * self.tilesize, self.tilesize,self.tilesize), 0)
+

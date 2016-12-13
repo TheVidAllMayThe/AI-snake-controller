@@ -3,8 +3,9 @@ from constants import *
 from heapq import *
 import pygame
 from node import *
-from functools import reduce
-import time
+import random
+from game import SnakeGame
+
 
 
 class Area:
@@ -20,10 +21,19 @@ class Area:
         self.gateways = set()
         self.obstacles = obstacles
         self.mapsize = mapsize
+        self.areas = []
 
         for x in range(minX, maxX+1):
             for y in range(minY, maxY+1):
-                Area.totalAreas += [(x, y)]
+                self.areas += [(x, y)]
+
+        Area.totalAreas += self.areas
+
+        r = [50, 100, 150, 200, 255]
+        g = [40, 90, 140, 190, 245]
+        b = [60, 110, 160, 210, 235]
+
+        self.colour = (r[random.randint(0, 4)], g[random.randint(0, 4)], b[random.randint(0, 4)])
 
     def __eq__(self, other):
         if self is None:
@@ -46,7 +56,6 @@ class Area:
         for area in areas:
             if area.isIn(coord):
                 return area
-
 
     def getneighbours(self, areas):
 
@@ -203,8 +212,9 @@ class student(Snake):
         self.first_high_search = True
         self.calculated_path = None
         self.calculated = False
+        self.game = None
 
-    def update(self,points=None, mapsize=None, count=None, agent_time=None):
+    def update(self,points=None, mapsize=None, count=None, agent_time=None, game=None):
         self.agent_time = agent_time
         self.nOpponents = len(points) - 1
         self.mapsize = mapsize
@@ -212,6 +222,7 @@ class student(Snake):
             self.opponentPoints = 0
         else:
             self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
+        self.game = game
 
     def updateDirection(self,maze):
         ratio = 5
@@ -263,6 +274,7 @@ class student(Snake):
             for area in self.areas:
                 area.getneighbours(self.areas)
 
+
         opponentAgent = [x for x in maze.playerpos if x not in self.body]
 
         if len(self.body) + len(opponentAgent) != self.current_players_len:
@@ -272,6 +284,10 @@ class student(Snake):
         if self.first_search:
             goal = maze.foodpos
 
+        for area in self.areas:
+            self.game.paint(area.areas, area.colour)
+            for gateway in area.gateways:
+                self.game.paint([gateway[0]], pygame.Color(255, 255, 255, 255))
         else:
             goal = self.highLevelSearch(self.body[0], maze.foodpos)
 
@@ -364,7 +380,7 @@ class student(Snake):
         else:
             heappush(self.frontier, self.node)
 
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.65):
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.55):
 
             if not self.frontier:
                 return None
@@ -406,7 +422,7 @@ class student(Snake):
         heappush(frontier, node)
         explored = []
 
-        limit = (self.agent_time*0.9) if self.first_search else (self.agent_time*0.25)
+        limit = (self.agent_time*0.8) if self.first_search else (self.agent_time*0.2)
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
