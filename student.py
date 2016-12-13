@@ -230,10 +230,9 @@ class student(Snake):
 
         if not self.areas:
             #Fill dead ends
-            cenas1 = len(self.obstacles)
             actions = [up, right, down, left]
             for x,y in [ (x,y) for x in range(0,self.mapsize[0]) for y in range(0,self.mapsize[1]) if (x,y) not in self.obstacles ]:
-                l = [ ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) for a in actions if ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) not in self.obstacles ]
+                l = [ a for a in actions if ((x+a[0])%self.mapsize[0],(y+a[1])%self.mapsize[1]) not in self.obstacles ]
                 if len(l) == 1:
                     self.obstacles += [(x,y)]
                     lt = l[:]
@@ -241,7 +240,7 @@ class student(Snake):
                     yt = y
                     while True:
                         xt,yt = ((xt+lt[0][0])%self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
-                        lt = [ ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) for a in actions if ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) not in self.obstacles ]
+                        lt = [ a for a in actions if ((xt+a[0])%self.mapsize[0],(yt+a[1])%self.mapsize[1]) not in self.obstacles ]
                         if len(lt) != 1:
                             break
                         else:
