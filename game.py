@@ -53,14 +53,16 @@ class SnakeGame:
             #create the window and do other stuff
             pygame.init()
             self.screen = pygame.display.set_mode(((self.hortiles)*self.tilesize,(self.verttiles)*self.tilesize+25), pygame.RESIZABLE)
-            self.screen2 = pygame.display.set_mode(((self.hortiles)*self.tilesize,(self.verttiles)*self.tilesize+25), pygame.RESIZABLE)
-            self.screen2.set_alpha(255)
+            self.surface = pygame.Surface((self.hortiles*self.tilesize, self.verttiles*self.tilesize))
+            self.surface.set_alpha(40)
+            self.surface.fill((255, 255, 255))
+            self.screen.blit(self.surface, (0, 0))
             pygame.display.set_caption('Python Snake')
         
             #load the font
             self.font = pygame.font.Font(None, 30)
-            self.obscolor=(139,69,19)
-            self.foodcolor=(0,255,0)
+            self.obscolor=(139, 69, 19)
+            self.foodcolor=(0, 255, 0)
         else:
             self.screen = None
         
@@ -170,7 +172,7 @@ class SnakeGame:
     def update(self,snake):
         #updates the snake...
         r = AgentUpdate.nothing
-
+        self.screen.blit(self.surface, (0, 0))
         head=snake.body[0]#head of snake
         if (abs(snake.agent.direction[0]) + abs(snake.agent.direction[1])) > 1:
             self.gameKill(snake)
@@ -286,5 +288,5 @@ class SnakeGame:
     def paint(self, area_list, colour):
 
         for coord in area_list:
-            pygame.draw.rect(self.screen2, pygame.Color(colour[0], colour[1], colour[2], 240), (coord[0] * self.tilesize, coord[1] * self.tilesize, self.tilesize,self.tilesize), 0)
+            pygame.draw.rect(self.surface, pygame.Color(colour[0], colour[1], colour[2], 240), (coord[0] * self.tilesize, coord[1] * self.tilesize, self.tilesize,self.tilesize), 0)
 

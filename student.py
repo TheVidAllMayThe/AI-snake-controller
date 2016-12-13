@@ -286,9 +286,12 @@ class student(Snake):
         else:
             goal = self.highLevelSearch(self.body[0], maze.foodpos)
 
+        for area in self.areas:
+            self.game.paint(area.areas, area.colour)
+
         deadends = self.deadEnds(self.body,opponentAgent,self.obstacles)
         self.game.paint(deadends, pygame.Color(255, 255, 255, 255))
-        mazedata = (self.body[:],opponentAgent,self.obstacles[:]+deadends,goal) #Search for food
+        mazedata = (self.body[:], opponentAgent, self.obstacles[:]+deadends,goal) #Search for food
         finalNode = self.aStar(mazedata)
         self.direction = finalNode.getAction()
 
