@@ -213,6 +213,9 @@ class student(Snake):
         self.calculated_path = None
         self.calculated = False
         self.game = None
+        self.opponent_agent = [-1]
+        self.opponent_agent_old_score = 1
+        self.opponent_agent_score_change = False
 
     def update(self,points=None, mapsize=None, count=None, agent_time=None, game=None):
         self.agent_time = agent_time
@@ -273,12 +276,16 @@ class student(Snake):
             for area in self.areas:
                 area.getneighbours(self.areas)
 
+        self.opponent_agent_old_score = len(self.opponent_agent)
+        self.opponent_agent = [x for x in maze.playerpos if x not in self.body]
 
-        opponentAgent = [x for x in maze.playerpos if x not in self.body]
+        if self.opponent_agent_old_score != len(self.opponent_agent):
+            self.opponent_agent_score_change = True
+            self.opponent_agent_old_score = len(self.opponent_agent)
 
-        if len(self.body) + len(opponentAgent) != self.current_players_len:
+        if len(self.body) + len(self.opponent_agent) != self.current_players_len:
             self.first_search = True
-            self.current_players_len = len(self.body) + len(opponentAgent)
+            self.current_players_len = len(self.body) + len(self.opponent_agent)
 
         if self.first_search:
             goal = maze.foodpos
@@ -289,9 +296,9 @@ class student(Snake):
         for area in self.areas:
             self.game.paint(area.areas, area.colour)
 
-        deadends = self.deadEnds(self.body,opponentAgent,self.obstacles)
+        deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         self.game.paint(deadends, pygame.Color(255, 255, 255, 255))
-        mazedata = (self.body[:], opponentAgent, self.obstacles[:]+deadends,goal) #Search for food
+        mazedata = (self.body[:], self.opponent_agent, self.obstacles[:]+deadends,goal) #Search for food
         finalNode = self.aStar(mazedata)
         self.direction = finalNode.getAction()
 
@@ -359,21 +366,43 @@ class student(Snake):
                 square = x
 
         if food_pos_square == square:
+            self.food_pos_square = food_pos_square
+            self.frontier = []
+            self.explored = []
+            self.calculated = False
+            self.first_high_search = True
             return foodpos
 
-        if food_pos_square != self.food_pos_square:
+        if self.opponent_agent_score_change:
             self.food_pos_square = food_pos_square
             self.frontier = []
             self.explored = []
             self.calculated = False
             self.first_high_search = True
 
+        """
+        if food_pos_square != self.food_pos_square:
+            self.food_pos_square = food_pos_square
+            self.frontier = []
+            self.explored = []
+            self.calculated = False
+            self.first_high_search = True
+        """
+
         if self.calculated:
             if head == self.calculated_path[0]:
                 self.calculated_path = self.calculated_path[1:]
-            return self.calculated_path[0]
+                if not self.calculated_path:
+                    self.food_pos_square = food_pos_square
+                    self.frontier = []
+                    self.explored = []
+                    self.calculated = False
+                    self.first_high_search = True
+            if self.calculated:
+                return self.calculated_path[0]
 
         if self.first_high_search:
+            self.food_pos_square = food_pos_square
             self.node = HiNode((head, (0, 0)), 0, self.distance(head, foodpos), None, square, None, self.mapsize)
             heappush(self.frontier, self.node)
             self.first_high_search = False
