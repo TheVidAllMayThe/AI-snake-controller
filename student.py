@@ -307,7 +307,7 @@ class student(Snake):
     def deadEnds(self,snake1,snake2,obstacles):
         actions = [up,down,left,right]
         deadends = []
-        for block in snake1[1:-1]:
+        for block in snake1[:-1]:
             for x in [ ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) for a in actions if ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) not in snake1 + snake2 + obstacles + deadends]:
                 l = [ a for a in actions if ( ( x[0] + a[0] ) % self.mapsize[0], ( x[1] + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:] + snake2]
                 if len(l) <= 1:
