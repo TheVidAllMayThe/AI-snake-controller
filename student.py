@@ -313,7 +313,7 @@ class student(Snake):
 
 
     def distance(self, pos1, pos2):
-        return min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
+        return ((min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0])))**2  +  (min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1])))**2)**1/2
 
     def isGoal(self, mazedata):
         oppActions = [False]
