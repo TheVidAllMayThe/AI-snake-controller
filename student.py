@@ -293,11 +293,7 @@ class student(Snake):
         else:
             goal = self.highLevelSearch(self.body[0], maze.foodpos)
 
-        for area in self.areas:
-            self.game.paint(area.areas, area.colour)
-
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
-        self.game.paint(deadends, pygame.Color(255, 255, 255, 255))
         mazedata = (self.body[:], self.opponent_agent, self.obstacles[:]+deadends,goal) #Search for food
         finalNode = self.aStar(mazedata)
         self.direction = finalNode.getAction()
@@ -451,7 +447,7 @@ class student(Snake):
         heappush(frontier, node)
         explored = []
 
-        limit = (self.agent_time*0.8) if self.first_search else (self.agent_time*0.2)
+        limit = (self.agent_time*0.75) if self.first_search else (self.agent_time*0.2)
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
@@ -465,7 +461,7 @@ class student(Snake):
                 explored += [(node.maze[0][0], node.action)]
             for x in self.valid_actions(node.maze, self.points, self.opponentPoints):
                 result = self.result(node.maze, x)
-                child = Node(result, node.costG + 1, 2*self.distance(result[0][0], result[3]), x, node)
+                child = Node(result, node.costG + 1, (5-len(self.valid_actions(result, self.points, self.opponentPoints)))*self.distance(result[0][0], result[3]), x, node)
 
                 if (child.maze[0][0], child.action) not in explored and child not in frontier:
                     heappush(frontier, child)
