@@ -4,9 +4,6 @@ from heapq import *
 import pygame
 from node import *
 import random
-from game import SnakeGame
-import time
-
 
 class Area:
     totalAreas = []
@@ -284,7 +281,7 @@ class student(Snake):
             self.opponent_agent_score_change = True
             self.opponent_agent_old_score = len(self.opponent_agent)
 
-        print("opponent score change: {}\nopponent len: {} \nopponent_old_score: {}".format(self.opponent_agent_score_change, len(self.opponent_agent), self.opponent_agent_old_score))
+        #print("opponent score change: {}\nopponent len: {} \nopponent_old_score: {}".format(self.opponent_agent_score_change, len(self.opponent_agent), self.opponent_agent_old_score))
 
         if len(self.body) + len(self.opponent_agent) != self.current_players_len:
             self.first_search = True
@@ -325,6 +322,7 @@ class student(Snake):
             return validDirections
 
     def deadEnds(self,snake1,snake2,obstacles):
+        return []
         actions = [up,down,left,right]
         deadends = []
         for block in snake1[:-1]:
@@ -421,6 +419,7 @@ class student(Snake):
             if self.node.square == self.food_pos_square:
                 self.calculated_path = self.node.get_complete_path()
                 self.calculated = True
+                #self.make_complete_path()
                 return self.calculated_path[0]
 
             if self.node.gateway not in self.explored:
@@ -447,13 +446,17 @@ class student(Snake):
 
     def aStar(self, mazedata):
         s = pygame.time.get_ticks()
-        actions = self.valid_actions(mazedata,self.points, self.opponentPoints)
-        node = Node(mazedata, 0, 2*self.distance(mazedata[0][0], mazedata[3]),actions[0] if actions != [] else self.direction,None)
+        actions = self.valid_actions(mazedata, self.points, self.opponentPoints)
+        node = Node(mazedata, 0, self.distance(mazedata[0][0], mazedata[3]), actions[0] if actions != [] else self.direction,None)
+        #print(mazedata[3])
         frontier = []
         heappush(frontier, node)
         explored = []
         highest_depth_node = node
-        limit = (self.agent_time*0.75) if self.first_search else (self.agent_time*0.2)
+        if self.calculated:
+            limit = self.agent_time*0.8
+        else:
+            limit = self.agent_time*0.8 if self.first_search else self.agent_time*0.2
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
@@ -469,7 +472,7 @@ class student(Snake):
                 explored += [(node.maze[0][0], node.action)]
             for x in self.valid_actions(node.maze, self.points, self.opponentPoints):
                 result = self.result(node.maze, x)
-                child = Node(result, node.costG + 1, (5-len(self.valid_actions(result, self.points, self.opponentPoints)))*self.distance(result[0][0], result[3]), x, node)
+                child = Node(result, node.costG + 1, self.distance(result[0][0], result[3]), x, node)
 
                 if (child.maze[0][0], child.action) not in explored and child not in frontier:
                     heappush(frontier, child)
@@ -478,5 +481,24 @@ class student(Snake):
                     frontier.remove(child)
                     heappush(frontier, child)
 
+        #print(node.maze[0])
         self.first_search = False
-        return highest_depth_node
+        return node
+
+    def make_complete_path(self):
+
+        calculated_path = self.calculated_path[:]
+        swap = True
+        while swap:
+            count = 0
+            swap = False
+            for x in range(0, len(self.calculated_path) - 1):
+                #print(self.calculated_path[x], self.calculated_path[x+1])
+                if self.distance(self.calculated_path[x], self.calculated_path[x+1]) > 10:
+                    tmp = ((self.calculated_path[x][0] + self.calculated_path[x+1][0]) // 2 , (self.calculated_path[x][1] + self.calculated_path[x+1][1]) // 2)
+                    print(tmp)
+                    calculated_path[x+1+count:x+1+count] = tmp
+                    print(calculated_path[x+1+count])
+                    count += 1
+                    swap = True
+            self.calculated_path = calculated_path[:]
