@@ -276,6 +276,7 @@ class student(Snake):
             for area in self.areas:
                 area.getneighbours(self.areas)
 
+        self.opponent_agent_score_change = False
         self.opponent_agent_old_score = len(self.opponent_agent)
         self.opponent_agent = [x for x in maze.playerpos if x not in self.body]
 
@@ -283,9 +284,15 @@ class student(Snake):
             self.opponent_agent_score_change = True
             self.opponent_agent_old_score = len(self.opponent_agent)
 
+        print("opponent score change: {}\nopponent len: {} \nopponent_old_score: {}".format(self.opponent_agent_score_change, len(self.opponent_agent), self.opponent_agent_old_score))
+
         if len(self.body) + len(self.opponent_agent) != self.current_players_len:
             self.first_search = True
             self.current_players_len = len(self.body) + len(self.opponent_agent)
+            self.frontier = []
+            self.explored = []
+            self.calculated = False
+            self.first_high_search = True
 
         if self.first_search:
             goal = maze.foodpos
@@ -293,6 +300,13 @@ class student(Snake):
         else:
             goal = self.highLevelSearch(self.body[0], maze.foodpos)
 
+        self.game.surface.fill((0, 0, 0))
+
+        for area in self.areas:
+            self.game.paint(area.areas, area.colour)
+
+        if self.calculated:
+            self.game.paint(self.calculated_path, pygame.Color(255, 255, 255, 255))
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         mazedata = (self.body[:], self.opponent_agent, self.obstacles[:]+deadends,goal) #Search for food
         finalNode = self.aStar(mazedata)
@@ -331,7 +345,6 @@ class student(Snake):
                         deadends += [(xt,yt)]
         return deadends
 
-
     def distance(self, pos1, pos2):
         return ((min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0])))**2  +  (min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1])))**2)**1/2
 
@@ -368,13 +381,6 @@ class student(Snake):
             self.calculated = False
             self.first_high_search = True
             return foodpos
-
-        if self.opponent_agent_score_change:
-            self.food_pos_square = food_pos_square
-            self.frontier = []
-            self.explored = []
-            self.calculated = False
-            self.first_high_search = True
 
         """
         if food_pos_square != self.food_pos_square:
@@ -446,13 +452,15 @@ class student(Snake):
         frontier = []
         heappush(frontier, node)
         explored = []
-
+        highest_depth_node = node
         limit = (self.agent_time*0.75) if self.first_search else (self.agent_time*0.2)
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
-                return node
+                return highest_depth_node
             node = heappop(frontier)
+            if node.depth > highest_depth_node.depth:
+                highest_depth_node = node
 
             if self.isGoal(node.maze) and self.valid_actions(self.result(mazedata, node.getAction()), self.points, self.opponentPoints):
                 return node
@@ -471,4 +479,4 @@ class student(Snake):
                     heappush(frontier, child)
 
         self.first_search = False
-        return node
+        return highest_depth_node
