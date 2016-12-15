@@ -4,6 +4,9 @@ from heapq import *
 import pygame
 from node import *
 import random
+import math
+import time
+
 
 class Area:
     totalAreas = []
@@ -82,7 +85,7 @@ class Area:
 
             elif neighbour == current_neighbour1:
                 count1 += 1
-                if count1 % 6 == 0:
+                if count1 % 4 == 0:
                     if ((self.minX - 1) % self.mapsize[0], y) not in self.obstacles:
                         self.gateways.add(((self.minX, y), left))
                     elif ((self.minX - 1) % self.mapsize[0], y-1) not in self.obstacles:
@@ -110,7 +113,7 @@ class Area:
 
             elif neighbour == current_neighbour2:
                 count2 += 1
-                if count2 % 6 == 0:
+                if count2 % 4 == 0:
                     if ((self.maxX + 1) % self.mapsize[0], y) not in self.obstacles:
                         self.gateways.add(((self.maxX, y), right))
                     elif ((self.maxX + 1) % self.mapsize[0], y - 1) not in self.obstacles:
@@ -144,7 +147,7 @@ class Area:
 
             elif neighbour == current_neighbour1:
                 count1 += 1
-                if count1 % 6 == 0:
+                if count1 % 4 == 0:
                     if (x, (self.minY - 1) % self.mapsize[1]) not in self.obstacles:
                         self.gateways.add(((x, self.minY), up))
                     elif (x - 1, (self.minY - 1) % self.mapsize[1]) not in self.obstacles:
@@ -171,7 +174,7 @@ class Area:
 
             elif neighbour == current_neighbour2:
                 count2 += 1
-                if count2 % 6 == 0:
+                if count2 % 4 == 0:
                     if (x, (self.maxY + 1) % self.mapsize[1]) not in self.obstacles:
                         self.gateways.add(((x, self.maxY), down))
                     elif (x - 1, (self.maxY + 1) % self.mapsize[1]) not in self.obstacles:
@@ -213,6 +216,8 @@ class student(Snake):
         self.opponent_agent = [-1]
         self.opponent_agent_old_score = 1
         self.opponent_agent_score_change = False
+        self.square_size = None
+        self.count = 0
 
     def update(self,points=None, mapsize=None, count=None, agent_time=None, game=None):
         self.agent_time = agent_time
@@ -223,7 +228,7 @@ class student(Snake):
         else:
             self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
         self.game = game
-
+        self.square_size = int(0.54 * agent_time + 1.7)
     def updateDirection(self,maze):
         ratio = 5
         self.obstacles = maze.obstacles[:]
@@ -251,13 +256,20 @@ class student(Snake):
                     if (x,y) not in Area.totalAreas and (x,y) not in self.obstacles:
                         xloopstart = x
                         xloopend = -1
+                        xcount = 0
                         for x2 in range(xloopstart, self.mapsize[0]):
                             if (x2,y) in self.obstacles or (x2,y) in Area.totalAreas:
                                 xloopend = x2-1 if x2 != xloopstart else x2
                                 break
+                            if xcount == self.square_size:
+                                xloopend = x2
+                                break
+                            xcount += 1
+
                         xloopend = xloopend if xloopend != -1 else self.mapsize[0]-1
                         yloopstart = y
                         yloopend = -1
+                        ycount = 0
                         for y2 in range(yloopstart,self.mapsize[1]):
                             breakPoint = False
                             for x2 in range(xloopstart, xloopend + 1):
@@ -267,6 +279,10 @@ class student(Snake):
                                     break
                             if breakPoint:
                                 break
+                            if ycount == self.square_size:
+                                yloopend = y2
+                                break
+                            ycount += 1
                         yloopend = yloopend if yloopend != -1 else self.mapsize[1] - 1
                         self.areas += [Area(xloopstart, xloopend, yloopstart, yloopend, self.obstacles, self.mapsize)]
 
@@ -280,8 +296,6 @@ class student(Snake):
         if self.opponent_agent_old_score != len(self.opponent_agent):
             self.opponent_agent_score_change = True
             self.opponent_agent_old_score = len(self.opponent_agent)
-
-        #print("opponent score change: {}\nopponent len: {} \nopponent_old_score: {}".format(self.opponent_agent_score_change, len(self.opponent_agent), self.opponent_agent_old_score))
 
         if len(self.body) + len(self.opponent_agent) != self.current_players_len:
             self.first_search = True
@@ -297,17 +311,25 @@ class student(Snake):
         else:
             goal = self.highLevelSearch(self.body[0], maze.foodpos)
 
+        if self.calculated:
+            self.count += 1
+
         self.game.surface.fill((0, 0, 0))
 
         for area in self.areas:
             self.game.paint(area.areas, area.colour)
 
-        if self.calculated:
-            self.game.paint(self.calculated_path, pygame.Color(255, 255, 255, 255))
+
+
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         mazedata = (self.body[:], self.opponent_agent, self.obstacles[:]+deadends,goal) #Search for food
-        finalNode = self.aStar(mazedata)
-        self.direction = finalNode.getAction()
+        action = self.aStar(mazedata)
+
+        if self.calculated:
+            self.game.paint(self.calculated_path, pygame.Color(255, 255, 255, 255))
+
+        if action != None:
+            self.direction = action
 
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
@@ -336,15 +358,15 @@ class student(Snake):
                     if l == []:
                         break
                     while True:
-                        xt,yt = ((xt+lt[0][0])%self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
-                        lt = [ a for a in actions if ( ( xt + a[0] ) % self.mapsize[0], ( yt + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:] + snake2 ]
+                        xt,yt = ((xt+lt[0][0]) % self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
+                        lt = [a for a in actions if ((xt + a[0]) % self.mapsize[0], (yt + a[1]) % self.mapsize[1]) not in obstacles + deadends + snake1[1:] + snake2]
                         if len(lt) != 1:
                             break
                         deadends += [(xt,yt)]
         return deadends
 
     def distance(self, pos1, pos2):
-        return ((min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0])))**2  +  (min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1])))**2)**1/2
+        return ((min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0])))**2  +  (min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1])))**2)**(1/2)
 
     def isGoal(self, mazedata):
         oppActions = [False]
@@ -373,6 +395,7 @@ class student(Snake):
                 square = x
 
         if food_pos_square == square:
+            self.count = 0
             self.food_pos_square = food_pos_square
             self.frontier = []
             self.explored = []
@@ -380,24 +403,27 @@ class student(Snake):
             self.first_high_search = True
             return foodpos
 
-        """
-        if food_pos_square != self.food_pos_square:
-            self.food_pos_square = food_pos_square
-            self.frontier = []
-            self.explored = []
-            self.calculated = False
-            self.first_high_search = True
-        """
+
 
         if self.calculated:
+            if self.distance(head, self.calculated_path[0]) >= (((self.square_size+2)**2)*2)**(1/2) or self.count == 40:
+                self.count = 0
+                self.food_pos_square = food_pos_square
+                self.frontier = []
+                self.explored = []
+                self.calculated = False
+                self.first_high_search = True
             if head == self.calculated_path[0]:
+                self.count = 0
                 self.calculated_path = self.calculated_path[1:]
                 if not self.calculated_path:
+                    self.count = 0
                     self.food_pos_square = food_pos_square
                     self.frontier = []
                     self.explored = []
                     self.calculated = False
                     self.first_high_search = True
+
             if self.calculated:
                 return self.calculated_path[0]
 
@@ -409,7 +435,7 @@ class student(Snake):
         else:
             heappush(self.frontier, self.node)
 
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.55):
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.50):
 
             if not self.frontier:
                 return None
@@ -448,7 +474,6 @@ class student(Snake):
         s = pygame.time.get_ticks()
         actions = self.valid_actions(mazedata, self.points, self.opponentPoints)
         node = Node(mazedata, 0, self.distance(mazedata[0][0], mazedata[3]), actions[0] if actions != [] else self.direction,None)
-        #print(mazedata[3])
         frontier = []
         heappush(frontier, node)
         explored = []
@@ -460,13 +485,21 @@ class student(Snake):
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
-                return highest_depth_node
+                valid_action = None
+                num_valid_actions = 0
+                for x in self.valid_actions(mazedata,10,0):
+                    valid_actions = self.valid_actions(self.result(mazedata, x), 10, 0)
+                    if len(valid_actions) > num_valid_actions:
+                        num_valid_actions = len(valid_actions)
+                        valid_action = x
+                return valid_action
+
             node = heappop(frontier)
             if node.depth > highest_depth_node.depth:
                 highest_depth_node = node
 
             if self.isGoal(node.maze) and self.valid_actions(self.result(mazedata, node.getAction()), self.points, self.opponentPoints):
-                return node
+                return node.getAction()
 
             if node.maze[0][0] not in explored:
                 explored += [(node.maze[0][0], node.action)]
@@ -480,25 +513,10 @@ class student(Snake):
                 elif [x for x in frontier if x == child and x.costG > child.costG]:
                     frontier.remove(child)
                     heappush(frontier, child)
+            self.game.paint([x.maze[0][0] for x in frontier], pygame.Color(0, 155, 0))
+            self.game.paint([x[0] for x in explored], pygame.Color(155, 0, 0))
 
         #print(node.maze[0])
         self.first_search = False
-        return node
+        return node.getAction()
 
-    def make_complete_path(self):
-
-        calculated_path = self.calculated_path[:]
-        swap = True
-        while swap:
-            count = 0
-            swap = False
-            for x in range(0, len(self.calculated_path) - 1):
-                #print(self.calculated_path[x], self.calculated_path[x+1])
-                if self.distance(self.calculated_path[x], self.calculated_path[x+1]) > 10:
-                    tmp = ((self.calculated_path[x][0] + self.calculated_path[x+1][0]) // 2 , (self.calculated_path[x][1] + self.calculated_path[x+1][1]) // 2)
-                    print(tmp)
-                    calculated_path[x+1+count:x+1+count] = tmp
-                    print(calculated_path[x+1+count])
-                    count += 1
-                    swap = True
-            self.calculated_path = calculated_path[:]
