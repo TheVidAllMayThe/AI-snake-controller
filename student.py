@@ -487,8 +487,8 @@ class student(Snake):
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
-            	if tail:
-            		return -1
+                if tail:
+            	    return -1
                 valid_action = None
                 num_valid_actions = 0
                 for x in self.valid_actions(mazedata,10,0):
@@ -504,7 +504,7 @@ class student(Snake):
 
             if self.isGoal(node.maze):
             	if tail:
-            		return 1
+            	    return 1
             	elif self.aStar((mazedata[0][::-1],mazedata[1],mazedata[2],mazedata[3]), tail=True) != -1:
                 	return node.getAction()
 
@@ -525,6 +525,6 @@ class student(Snake):
 
         self.first_search = False
         if tail:
-        	return 0
+            return 0
         return node.getAction()
 
