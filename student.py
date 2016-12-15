@@ -470,7 +470,7 @@ class student(Snake):
         return self.node.getPlace()
 
 
-    def aStar(self, mazedata):
+    def aStar(self,mazedata,tail=False):
         s = pygame.time.get_ticks()
         actions = self.valid_actions(mazedata, self.points, self.opponentPoints)
         node = Node(mazedata, 0, self.distance(mazedata[0][0], mazedata[3]), actions[0] if actions != [] else self.direction,None)
@@ -478,6 +478,8 @@ class student(Snake):
         heappush(frontier, node)
         explored = []
         highest_depth_node = node
+        if tail:
+        	limit = self.agent_time*0.2
         if self.calculated:
             limit = self.agent_time*0.8
         else:
@@ -485,6 +487,8 @@ class student(Snake):
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
+            	if tail:
+            		return -1
                 valid_action = None
                 num_valid_actions = 0
                 for x in self.valid_actions(mazedata,10,0):
@@ -498,8 +502,11 @@ class student(Snake):
             if node.depth > highest_depth_node.depth:
                 highest_depth_node = node
 
-            if self.isGoal(node.maze) and self.valid_actions(self.result(mazedata, node.getAction()), self.points, self.opponentPoints):
-                return node.getAction()
+            if self.isGoal(node.maze):
+            	if tail:
+            		return 1
+            	elif self.aStar((mazedata[0][::-1],mazedata[1],mazedata[2],mazedata[3]), tail=True) != -1:
+                	return node.getAction()
 
             if node.maze[0][0] not in explored:
                 explored += [(node.maze[0][0], node.action)]
@@ -516,7 +523,8 @@ class student(Snake):
             self.game.paint([x.maze[0][0] for x in frontier], pygame.Color(0, 155, 0))
             self.game.paint([x[0] for x in explored], pygame.Color(155, 0, 0))
 
-        #print(node.maze[0])
         self.first_search = False
+        if tail:
+        	return 0
         return node.getAction()
 
