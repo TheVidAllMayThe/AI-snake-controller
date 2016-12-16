@@ -326,17 +326,9 @@ class student(Snake):
         if self.calculated:
             self.game.paint(self.calculated_path, pygame.Color(255, 255, 255, 255))
         """
-        if action != None:
-            self.direction = action
+        self.direction = action
         if (self.body[0][0] + self.direction[0], self.body[0][1] + self.direction[1]) in (self.obstacles + self.body + self.opponent_agent):
-            valid_action = None
-            num_valid_actions = 0
-            for x in self.valid_actions(mazedata, 10, 0):
-                valid_actions = self.valid_actions(self.result(mazedata, x), 10, 0)
-                if len(valid_actions) > num_valid_actions:
-                    num_valid_actions = len(valid_actions)
-                    valid_action = x
-            self.direction = valid_action if valid_action != None else self.direction
+            self.direction = self.valid_actions(mazedata,self.points,self.opponentPoint)[0]
 
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
@@ -445,7 +437,7 @@ class student(Snake):
         else:
             heappush(self.frontier, self.node)
 
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.50):
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.40):
 
             if not self.frontier:
                 return None
