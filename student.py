@@ -320,15 +320,24 @@ class student(Snake):
             self.game.paint([x[0] for x in area.gateways], pygame.Color(255, 255, 0))
         """
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
+        self.mazedata_without_deadends = (self.body, self.opponent_agent, self.obstacles, goal)
         mazedata = (self.body, self.opponent_agent, self.obstacles+deadends,goal) #Search for food
-        action = self.aStar(mazedata)
+        self.direction = self.aStar(mazedata)
         """
         if self.calculated:
             self.game.paint(self.calculated_path, pygame.Color(255, 255, 255, 255))
         """
-        self.direction = action
         if (self.body[0][0] + self.direction[0], self.body[0][1] + self.direction[1]) in (self.obstacles + self.body + self.opponent_agent):
-            self.direction = self.valid_actions(mazedata,self.points,self.opponentPoint)[0]
+            valid_action = None
+            num_valid_actions = 0
+            for x in self.valid_actions(self.mazedata_without_deadends, 10, 0):
+                valid_actions = self.valid_actions(self.result(self.mazedata_without_deadends, x), 10, 0)
+                if len(valid_actions) > num_valid_actions:
+                    num_valid_actions = len(valid_actions)
+                    valid_action = x
+            self.direction = valid_action if valid_action != None else self.direction
+
+        return 45
 
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
@@ -492,8 +501,8 @@ class student(Snake):
                     return -1
                 valid_action = None
                 num_valid_actions = 0
-                for x in self.valid_actions(mazedata,10,0):
-                    valid_actions = self.valid_actions(self.result(mazedata, x), 10, 0)
+                for x in self.valid_actions(self.mazedata_without_deadends,10,0):
+                    valid_actions = self.valid_actions(self.result(self.mazedata_without_deadends, x), 10, 0)
                     if len(valid_actions) > num_valid_actions:
                         num_valid_actions = len(valid_actions)
                         valid_action = x
@@ -512,8 +521,8 @@ class student(Snake):
                 else:
                     valid_action = None
                     num_valid_actions = 0
-                    for x in self.valid_actions(mazedata, 10, 0):
-                        valid_actions = self.valid_actions(self.result(mazedata, x), 10, 0)
+                    for x in self.valid_actions(self.mazedata_without_deadends, 10, 0):
+                        valid_actions = self.valid_actions(self.result(self.mazedata_without_deadends, x), 10, 0)
                         if len(valid_actions) > num_valid_actions:
                             num_valid_actions = len(valid_actions)
                             valid_action = x
