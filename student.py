@@ -315,8 +315,9 @@ class student(Snake):
 
         self.game.surface.fill((0, 0, 0))
 
-        #for area in self.areas:
-        #    self.game.paint(area.areas, area.colour)
+        for area in self.areas:
+            self.game.paint(area.areas, area.colour)
+            self.game.paint([x[0] for x in area.gateways], pygame.Color(255, 255, 0))
 
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         mazedata = (self.body[:], self.opponent_agent, self.obstacles[:]+deadends,goal) #Search for food
@@ -442,7 +443,6 @@ class student(Snake):
             if self.node.square == self.food_pos_square:
                 self.calculated_path = self.node.get_complete_path()
                 self.calculated = True
-                #self.make_complete_path()
                 return self.calculated_path[0]
 
             if self.node.gateway not in self.explored:
@@ -504,8 +504,18 @@ class student(Snake):
                 if tail:
                     print(":)")
                     return 1
-                elif self.aStar((node.maze[0], node.maze[1], node.maze[2], node.maze[0][-1]), tail=True) != -1:
+                tail_action = self.valid_actions((node.maze[0][::-1], node.maze[1], node.maze[2], node.maze[3]), 10, 0)[0]
+                if self.aStar((node.maze[0], node.maze[1], node.maze[2], (node.maze[0][-1][0] + tail_action[0], node.maze[0][-1][1] + tail_action[1])), tail=True) != -1:
                     return node.getAction()
+                else:
+                    valid_action = None
+                    num_valid_actions = 0
+                    for x in self.valid_actions(mazedata, 10, 0):
+                        valid_actions = self.valid_actions(self.result(mazedata, x), 10, 0)
+                        if len(valid_actions) > num_valid_actions:
+                            num_valid_actions = len(valid_actions)
+                            valid_action = x
+                    return valid_action
 
             if node.maze[0][0] not in explored:
                 explored += [(node.maze[0][0], node.action)]
