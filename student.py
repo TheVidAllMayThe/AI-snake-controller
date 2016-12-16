@@ -355,9 +355,9 @@ class student(Snake):
         actions = [up,down,left,right]
         deadends = []
         for block in snake1[:-1]:
-            if s - pygame.time.get_ticks() > self.agent_time * 0.05:
-                break
             for x in [ ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) for a in actions if ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) not in snake1 + snake2 + obstacles + deadends]:
+                if s - pygame.time.get_ticks() > self.agent_time * 0.05:
+                    return deadends
                 l = [ a for a in actions if ( ( x[0] + a[0] ) % self.mapsize[0], ( x[1] + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:] + snake2]
                 if len(l) <= 1:
                     deadends += [x] 
