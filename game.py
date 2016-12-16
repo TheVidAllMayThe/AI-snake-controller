@@ -68,9 +68,9 @@ class SnakeGame:
         
         self.playerpos=[]
         self.obstacles=[]
-        self.generateFood()
         self.fps=fps #frames per second. The higher, the harder
         self.setObstacles(obstacles, mapa)
+        self.generateFood()
 
     def generateFood(self):
         self.foodpos=random.randrange(0,self.hortiles),random.randrange(0,self.verttiles)
@@ -245,8 +245,8 @@ class SnakeGame:
 
                 maze = Maze(self.obstacles, self.playerpos, self.foodpos)   #just a copy of our information (avoid shameful agents that tinker with the game server)
                 s = pygame.time.get_ticks()
-                player.agent.updateDirection(maze) #update game logic (only for alive players)
-                f = pygame.time.get_ticks() - player.latency 
+                player.latency = player.agent.updateDirection(maze) #update game logic (only for alive players)
+                f = pygame.time.get_ticks() - (player.latency if player.latency != None else 0)
                 
                 if f-s > 1000*(1/self.fps)/2:
                     logging.debug("Player <{}> took {}".format(player.name, f-s))
