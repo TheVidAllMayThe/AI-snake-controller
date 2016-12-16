@@ -329,6 +329,16 @@ class student(Snake):
         if action != None:
             self.direction = action
 
+        if (self.body[0][0] + self.direction[0], self.body[0][1] + self.direction[1]) in (self.obstacles + self.body + self.opponent_agent):
+            valid_action = None
+            num_valid_actions = 0
+            for x in self.valid_actions(mazedata, 10, 0):
+                valid_actions = self.valid_actions(self.result(mazedata, x), 10, 0)
+                if len(valid_actions) > num_valid_actions:
+                    num_valid_actions = len(valid_actions)
+                    valid_action = x
+            self.direction = valid_action
+
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
             occupiedPositions = mazedata[2] + mazedata[1] + mazedata[0]
