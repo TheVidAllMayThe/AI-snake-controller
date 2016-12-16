@@ -316,14 +316,14 @@ class student(Snake):
         if self.calculated:
             self.count += 1
 
-        self.game.surface.fill((0, 0, 0))
+        #self.game.surface.fill((0, 0, 0))
         """
         for area in self.areas:
             self.game.paint(area.areas, area.colour)
             self.game.paint([x[0] for x in area.gateways], pygame.Color(255, 255, 0))
         """
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
-        self.game.paint(deadends, pygame.Color(255,255,255))
+        #self.game.paint(deadends, pygame.Color(255,255,255))
         self.mazedata_without_deadends = (self.body, self.opponent_agent, self.obstacles, goal)
         mazedata = (self.body, self.opponent_agent, self.obstacles+deadends,goal) #Search for food
 
@@ -369,6 +369,9 @@ class student(Snake):
         for block in snake1[:-1]:
             for x in [ ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) for a in actions if ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) not in snake1 + snake2 + obstacles + deadends]:
 
+                if pygame.time.get_ticks() - s > self.agent_time * 0.1:
+                    #print("not done")
+                    return deadends
                 l = [ a for a in actions if ( ( x[0] + a[0] ) % self.mapsize[0], ( x[1] + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:] + snake2]
                 if len(l) <= 1:
                     deadends += [x] 
@@ -377,15 +380,12 @@ class student(Snake):
                     yt = x[1]
                     if l == []:
                         break
-                    while True:
+                    while pygame.time.get_ticks() - s > self.agent_time * 0.1:
                         xt,yt = ((xt+lt[0][0]) % self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
                         lt = [a for a in actions if ((xt + a[0]) % self.mapsize[0], (yt + a[1]) % self.mapsize[1]) not in obstacles + deadends + snake1[1:] + snake2]
                         if len(lt) != 1 or (xt,yt) == snake1[0]:
                             break
                         deadends += [(xt,yt)]
-            if s - pygame.time.get_ticks() > self.agent_time * 0.1:
-                #print("not done")
-                return deadends
 
         #print("deadEnds ticks: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
         #print("done")
@@ -577,6 +577,6 @@ class student(Snake):
         if tail:
             #print("worst case Tail A* Time tail: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s,pygame.time.get_ticks(),pygame.time.get_ticks() - s))
             return 0
-        print("Worst Case A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(),pygame.time.get_ticks() - s))
+        #print("Worst Case A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(),pygame.time.get_ticks() - s))
         return node.getAction()
 
