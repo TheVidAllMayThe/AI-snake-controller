@@ -291,6 +291,7 @@ class student(Snake):
 
         if self.first:
             self.obstacles = maze.obstacles[:]
+            self.ahead = False
         self.opponent_agent_score_change = False
         self.opponent_agent_old_score = len(self.opponent_agent)
         self.opponent_agent = [x for x in maze.playerpos if x not in self.body]
