@@ -289,7 +289,8 @@ class student(Snake):
 
     def updateDirection(self,maze):
 
-        self.obstacles = maze.obstacles[:]
+        if self.first:
+            self.obstacles = maze.obstacles[:]
         self.opponent_agent_score_change = False
         self.opponent_agent_old_score = len(self.opponent_agent)
         self.opponent_agent = [x for x in maze.playerpos if x not in self.body]
@@ -348,7 +349,7 @@ class student(Snake):
         if action is not None:
             self.direction = action
 
-        elif valid_action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
+        elif action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
             self.direction = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
         self.first = False
 
