@@ -345,7 +345,7 @@ class student(Snake):
         if action is not None:
             self.direction = action
 
-        elif valid_action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
+        elif valid_action is None or self.valid_actions(self.mazedata_without_deadends, 10, 0):
             self.direction = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
         self.first = False
 
