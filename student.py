@@ -5,7 +5,6 @@ import pygame
 from node import *
 import random
 import math
-import time
 
 
 class Area:
@@ -307,7 +306,12 @@ class student(Snake):
             self.calculated = False
             self.first_high_search = True
 
-        if self.first_search:
+        if self.points > self.opponentPoints + 70:
+            for a in [up, left, down, right]:
+                goal =  ( (self.body[-1][0] + a[0])%self.mapsize[0], (self.body[-1][1] + a[1])%self.mapsize[1] ) 
+                if goal not in self.obstacles + self.body + self.opponent_agent:
+                    break
+        elif self.first_search:
             goal = maze.foodpos
 
         else:
@@ -315,7 +319,6 @@ class student(Snake):
 
         if self.calculated:
             self.count += 1
-
         #self.game.surface.fill((0, 0, 0))
         """
         for area in self.areas:
@@ -345,7 +348,7 @@ class student(Snake):
         if action is not None:
             self.direction = action
 
-        elif valid_action is None or self.valid_actions(self.mazedata_without_deadends, 10, 0):
+        elif valid_action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
             self.direction = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
         self.first = False
 
