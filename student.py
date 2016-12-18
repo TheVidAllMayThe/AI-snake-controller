@@ -370,7 +370,7 @@ class student(Snake):
             for x in [ ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) for a in actions if ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) not in snake1 + snake2 + obstacles + deadends]:
 
                 if pygame.time.get_ticks() - s > self.agent_time * 0.1:
-                    print("not done")
+                    #print("not done")
                     return deadends
                 l = [ a for a in actions if ( ( x[0] + a[0] ) % self.mapsize[0], ( x[1] + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:] + snake2]
                 if len(l) <= 1:
@@ -387,8 +387,8 @@ class student(Snake):
                             break
                         deadends += [(xt,yt)]
 
-        print("deadEnds ticks: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
-        print("done")
+        #print("deadEnds ticks: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+        #print("done")
         return deadends
 
 
@@ -450,7 +450,7 @@ class student(Snake):
                     self.first_high_search = True
 
             if self.calculated:
-                print("CalculatedPath HighLevel: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+                #print("CalculatedPath HighLevel: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
                 return self.calculated_path[0]
 
         if self.first_high_search:
@@ -471,7 +471,7 @@ class student(Snake):
             if self.node.square == self.food_pos_square:
                 self.calculated_path = self.node.get_complete_path()
                 self.calculated = True
-                print("UncalculatedPath HighLevel: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+                #print("UncalculatedPath HighLevel: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
                 return self.calculated_path[0]
 
             if self.node.gateway not in self.explored:
@@ -493,7 +493,7 @@ class student(Snake):
                     self.frontier.remove(child)
                     heappush(self.frontier, child)
 
-        print("WorstCase HighLevel: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+        #print("WorstCase HighLevel: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
         return self.node.getPlace()
 
     def aStar(self, mazedata, tail=False):
@@ -506,16 +506,16 @@ class student(Snake):
         highest_depth_node = node
 
         if self.calculated:
-            limit = self.agent_time*0.35
+            limit = self.agent_time*0.30
         else:
-            limit = self.agent_time*0.35 if self.first_search else self.agent_time*0.1
+            limit = self.agent_time*0.30 if self.first_search else self.agent_time*0.1
             if tail:
-                limit = self.agent_time*0.35 if self.first_search else self.agent_time*0.1
+                limit = self.agent_time*0.30 if self.first_search else self.agent_time*0.1
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
                 if tail:
-                    print("Unsuccessfull tail A* Time: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+                    #print("Unsuccessfull tail A* Time: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
                     return -1
                 valid_action = None
                 num_valid_actions = 0
@@ -525,7 +525,7 @@ class student(Snake):
                         num_valid_actions = len(valid_actions)
                         valid_action = x
 
-                print("Unsuccessfull A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+                #print("Unsuccessfull A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
                 return valid_action
 
             node = heappop(frontier)
@@ -534,7 +534,7 @@ class student(Snake):
 
             if self.isGoal(node.maze):
                 if tail:
-                    print("Successfull A* Time tail: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+                    #print("Successfull A* Time tail: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
                     return 1
                 tail_action = self.valid_actions((node.maze[0][::-1], node.maze[1], node.maze[2], node.maze[3]), 10, 0)
 
@@ -543,7 +543,7 @@ class student(Snake):
                 else:
                     tail_action = tail_action[0]
                 if self.aStar((node.maze[0], node.maze[1], node.maze[2], (node.maze[0][-1][0] + tail_action[0], node.maze[0][-1][1] + tail_action[1])), tail=True) != -1:
-                    print("Successfull A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+                    #print("Successfull A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
 
                     return node.getAction()
                 else:
@@ -554,7 +554,7 @@ class student(Snake):
                         if len(valid_actions) > num_valid_actions:
                             num_valid_actions = len(valid_actions)
                             valid_action = x
-                    print("Undetermined A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+                    #print("Undetermined A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
                     return valid_action
 
             if node.maze[0][0] not in explored:
@@ -575,8 +575,8 @@ class student(Snake):
             """
         self.first_search = False
         if tail:
-            print("worst case Tail A* Time tail: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s,pygame.time.get_ticks(),pygame.time.get_ticks() - s))
+            #print("worst case Tail A* Time tail: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s,pygame.time.get_ticks(),pygame.time.get_ticks() - s))
             return 0
-        print("Worst Case A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(),pygame.time.get_ticks() - s))
+        #print("Worst Case A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(),pygame.time.get_ticks() - s))
         return node.getAction()
 
