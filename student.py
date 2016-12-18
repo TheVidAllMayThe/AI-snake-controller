@@ -307,11 +307,14 @@ class student(Snake):
             self.calculated = False
             self.first_high_search = True
 
-        if self.points > self.opponentPoints + 70:
+        if self.ahead or self.points > self.opponentPoints + 60:
+            self.ahead = True
             for a in [up, left, down, right]:
                 goal =  ( (self.body[-1][0] + a[0])%self.mapsize[0], (self.body[-1][1] + a[1])%self.mapsize[1] ) 
                 if goal not in self.obstacles + self.body + self.opponent_agent:
                     break
+            if self.points < self.opponentPoints + 30:
+                self.ahead = False
         elif self.first_search:
             goal = maze.foodpos
 
