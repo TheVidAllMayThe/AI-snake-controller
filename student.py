@@ -308,6 +308,7 @@ class student(Snake):
             self.calculated = False
             self.first_high_search = True
 
+        print(0)
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         if self.ahead or self.points >= self.opponentPoints + 50:
             self.ahead = True
@@ -317,7 +318,7 @@ class student(Snake):
             elif left in x:
                 goal = left
             else:
-                goal = right
+                goal = None
             if self.points <= self.opponentPoints + 30:
                 self.ahead = False
         elif self.first_search:
@@ -333,7 +334,7 @@ class student(Snake):
 
         action = self.aStar(mazedata)
         valid_action = None
-        if action is None or action is not None and (self.body[0][0] + action[0], self.body[0][1] + action[1]) in (self.obstacles + self.body + self.opponent_agent):
+        if action is None or (self.body[0][0] + action[0], self.body[0][1] + action[1]) in (self.obstacles + self.body + self.opponent_agent):
             num_valid_actions = 0
             for x in self.valid_actions(self.mazedata_without_deadends, 10, 0):
                 valid_actions = self.valid_actions(self.result(self.mazedata_without_deadends, x), 10, 0)
@@ -341,7 +342,6 @@ class student(Snake):
                     num_valid_actions = len(valid_actions)
                     valid_action = x
             action = valid_action if valid_action is not None else self.direction
-
         if action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
             action = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
         if action is not None:
@@ -419,6 +419,9 @@ class student(Snake):
                 food_pos_square = x
             if x.isIn(head):
                 square = x
+        
+        if food_pos_square == None:
+            return ( 2*self.body[-1][0] - self.body[-2][0], 2*self.body[-2][0] - self.body[-2][1] )
 
         if food_pos_square == square:
             self.count = 0
