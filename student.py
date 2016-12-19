@@ -434,8 +434,7 @@ class student(Snake):
                 square = x
         
         if food_pos_square == None:
-            for x in self.biggest_square.gateways:
-                return x[0]
+            return square.furthest_area.center
 
         if food_pos_square == square:
             self.count = 0
@@ -488,6 +487,9 @@ class student(Snake):
                 self.calculated_path = self.node.get_complete_path()
                 self.calculated = True
                 #print("UncalculatedPath HighLevel: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
+                if len(self.node.square.gateways) < 2 and self.node.square.borders[0][1] - self.node.square.borders[0][0] + self.node.square.borders[1][1] - self.node.square.borders[1][0] < len(self.body) + 3:
+                    return self.node.square.furthest_area.center
+
                 return self.calculated_path[0]
 
             if self.node.gateway not in self.explored:
