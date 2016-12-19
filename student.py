@@ -308,40 +308,32 @@ class student(Snake):
             self.calculated = False
             self.first_high_search = True
 
+        deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         if self.ahead or self.points >= self.opponentPoints + 50:
             self.ahead = True
-            #for a in [up, left, down, right]:
-            goal = ( 2*self.body[-1][0] - self.body[-2][0] , 2*self.body[-1][1] - self.body[-2][1])
-                #if goal not in self.obstacles + self.body + self.opponent_agent:
-                #    break
+            x = self.valid_actions( ( self.body, self.opponent_agent, self.obstacles[:] + deadends, None ), self.points, self.opponentPoints )
+            if up in x:
+                goal = up
+            elif left in x:
+                goal = left
+            else:
+                goal = right
             if self.points <= self.opponentPoints + 30:
                 self.ahead = False
         elif self.first_search:
             goal = maze.foodpos
-
         else:
             goal = self.highLevelSearch(self.body[0], maze.foodpos)
 
         if self.calculated:
             self.count += 1
-        #self.game.surface.fill((0, 0, 0))
-        """
-        for area in self.areas:
-            self.game.paint(area.areas, area.colour)
-            self.game.paint([x[0] for x in area.gateways], pygame.Color(255, 255, 0))
-        """
-        deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
-        #self.game.paint(deadends, pygame.Color(255,255,255))
+
         self.mazedata_without_deadends = (self.body, self.opponent_agent, self.obstacles, goal)
         mazedata = (self.body, self.opponent_agent, self.obstacles[:] + deadends, goal) #Search for food
 
         action = self.aStar(mazedata)
-        """
-        if self.calculated:
-            self.game.paint(self.calculated_path, pygame.Color(255, 255, 255, 255))
-        """
         valid_action = None
-        if action is None or (self.body[0][0] + action[0], self.body[0][1] + action[1]) in (self.obstacles + self.body + self.opponent_agent):
+        if action is None or action is not None and (self.body[0][0] + action[0], self.body[0][1] + action[1]) in (self.obstacles + self.body + self.opponent_agent):
             num_valid_actions = 0
             for x in self.valid_actions(self.mazedata_without_deadends, 10, 0):
                 valid_actions = self.valid_actions(self.result(self.mazedata_without_deadends, x), 10, 0)
@@ -352,11 +344,9 @@ class student(Snake):
 
         if action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
             action = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
-
         if action is not None:
             self.direction = action
         self.first = False
-        print(self.direction if self.direction is not None else "None")
 
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
