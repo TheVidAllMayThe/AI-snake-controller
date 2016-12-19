@@ -15,12 +15,14 @@ class Area:
         self.maxY = maxY
         self.minX = minX
         self.maxX = maxX
+        self.center = (maxX - minX)//2, (maxY - minY)//2
         self.borders = [ (minX,maxX), (minY,maxY) ]
         self.neighbours = set()
         self.gateways = set()
         self.obstacles = obstacles
         self.mapsize = mapsize
         self.areas = []
+        self.furthest_area = self
 
         for x in range(minX, maxX+1):
             for y in range(minY, maxY+1):
@@ -181,6 +183,9 @@ class Area:
                     elif (x + 1, (self.maxY + 1) % self.mapsize[1]) not in self.obstacles:
                         self.gateways.add(((x + 1, self.maxY), down))
 
+    def distance(self, pos1, pos2):
+        return ((min(abs(pos2[0] - pos1[0]), (self.mapsize[0]) - 1 - abs(pos2[0] - pos1[0]))) ** 2 + (min(abs(pos2[1] - pos1[1]), self.mapsize[1] - 1 - abs(pos2[1] - pos1[1]))) ** 2) ** (1 / 2)
+
     def __str__(self):
         neighbours = "["
         for x in self.neighbours:
@@ -193,6 +198,14 @@ class Area:
 
     def isIn(self, pos):
         return pos[0] in range(self.borders[0][0],self.borders[0][1]+1) and pos[1] in range(self.borders[1][0],self.borders[1][1]+1)
+
+    def get_furthest_area(self, areas):
+        furthest_area = self
+        for area in areas:
+            if self.distance(self.center, area.center) > self.distance(self.center, furthest_area.center):
+                furthest_area = area
+        self.furthest_area = furthest_area
+
 
 
 class student(Snake):
@@ -288,6 +301,7 @@ class student(Snake):
                 if self.biggest_square == None or ( self.biggest_square.borders[0][1] - self.biggest_square.borders[0][0] ) * ( self.biggest_square.borders[1][1] - self.biggest_square.borders[1][0]) < ( area.borders[0][1] - area.borders[0][0] ) * ( area.borders[1][1] - area.borders[1][0] ):
                     self.biggest_square = area
                 area.getneighbours(self.areas)
+                area.get_furthest_area(self.areas)
 
     def updateDirection(self,maze):
 
@@ -311,14 +325,15 @@ class student(Snake):
             self.first_high_search = True
 
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
-        if self.ahead or self.points >= self.opponentPoints + 50:
+        if self.ahead or self.points >= self.opponentPoints + 60:
             self.ahead = True
-            for x in [ g[0] for g in self.biggest_square.gateways ]:
-                if x not in self.body:
-                    goal = x
+            for x in self.areas:
+                if x.isIn(self.body[0]):
+                    goal = x.furthest_area.center
                     break
             if self.points <= self.opponentPoints + 30:
                 self.ahead = False
+
         elif self.first_search:
             goal = maze.foodpos
         else:
