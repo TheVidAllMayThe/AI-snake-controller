@@ -308,13 +308,13 @@ class student(Snake):
             self.calculated = False
             self.first_high_search = True
 
-        if self.ahead or self.points > self.opponentPoints + 60:
+        if self.ahead or self.points >= self.opponentPoints + 70:
             self.ahead = True
-            for a in [up, left, down, right]:
-                goal =  ( (self.body[-1][0] + a[0])%self.mapsize[0], (self.body[-1][1] + a[1])%self.mapsize[1] ) 
-                if goal not in self.obstacles + self.body + self.opponent_agent:
-                    break
-            if self.points < self.opponentPoints + 30:
+            #for a in [up, left, down, right]:
+            goal =  ( self.body[-1][0] - (self.body[-2][0] - self.body[-1][0])%self.mapsize[0], self.body[-1][0] - (self.body[-2][1] - self.body[-1][1])%self.mapsize[1] )
+                #if goal not in self.obstacles + self.body + self.opponent_agent:
+                #    break
+            if self.points <= self.opponentPoints + 40:
                 self.ahead = False
         elif self.first_search:
             goal = maze.foodpos
@@ -333,7 +333,7 @@ class student(Snake):
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         #self.game.paint(deadends, pygame.Color(255,255,255))
         self.mazedata_without_deadends = (self.body, self.opponent_agent, self.obstacles, goal)
-        mazedata = (self.body, self.opponent_agent, self.obstacles+deadends,goal) #Search for food
+        mazedata = (self.body, self.opponent_agent, self.obstacles[:] + deadends, goal) #Search for food
 
         action = self.aStar(mazedata)
         """
@@ -342,7 +342,6 @@ class student(Snake):
         """
         valid_action = None
         if action is None or (self.body[0][0] + action[0], self.body[0][1] + action[1]) in (self.obstacles + self.body + self.opponent_agent):
-
             num_valid_actions = 0
             for x in self.valid_actions(self.mazedata_without_deadends, 10, 0):
                 valid_actions = self.valid_actions(self.result(self.mazedata_without_deadends, x), 10, 0)
@@ -350,11 +349,12 @@ class student(Snake):
                     num_valid_actions = len(valid_actions)
                     valid_action = x
             action = valid_action if valid_action is not None else self.direction
+
+        if action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
+            action = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
+
         if action is not None:
             self.direction = action
-
-        elif action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
-            self.direction = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
         self.first = False
 
     def valid_actions(self, mazedata, points, oppPoints):
@@ -386,7 +386,7 @@ class student(Snake):
                     lt = l[:]
                     xt = x[0]
                     yt = x[1]
-                    if l == []:
+                    if not l:
                         break
                     while pygame.time.get_ticks() - s > self.agent_time * 0.1:
                         xt,yt = ((xt+lt[0][0]) % self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
@@ -469,7 +469,7 @@ class student(Snake):
         else:
             heappush(self.frontier, self.node)
 
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.60):
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.45):
 
             if not self.frontier:
                 return None
@@ -514,11 +514,11 @@ class student(Snake):
         highest_depth_node = node
 
         if self.calculated:
-            limit = self.agent_time*0.30
+            limit = self.agent_time*0.2
         else:
-            limit = self.agent_time*0.30 if self.first_search else self.agent_time*0.1
+            limit = self.agent_time*0.2 if self.first_search else self.agent_time*0.1
             if tail:
-                limit = self.agent_time*0.30 if self.first_search else self.agent_time*0.1
+                limit = self.agent_time*0.25 if self.first_search else self.agent_time*0.1
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
