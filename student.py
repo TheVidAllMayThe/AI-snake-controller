@@ -521,12 +521,18 @@ class student(Snake):
         explored = []
         highest_depth_node = node
 
-        if self.calculated:
-            limit = self.agent_time*0.3
-        else:
-            limit = self.agent_time*0.3 if self.first_search else self.agent_time*0.1
-            if tail:
+        if self.agent_time >= 15:
+            if self.calculated:
+                limit = self.agent_time*0.3
+            else:
                 limit = self.agent_time*0.3 if self.first_search else self.agent_time*0.1
+                if tail:
+                    limit = self.agent_time*0.3 if self.first_search else self.agent_time*0.1
+        else:
+            if self.calculated:
+                limit = self.agent_time*0.6
+            else:
+                limit = self.agent_time*0.6 if self.first_search else self.agent_time*0.2
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
@@ -549,6 +555,8 @@ class student(Snake):
                 highest_depth_node = node
 
             if self.isGoal(node.maze):
+                if self.agent_time < 15:
+                    return node.getAction()
                 if tail:
                     #print("Successfull A* Time tail: limit - {}   start - {}   end - {}   diff - {}".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
                     return 1
@@ -560,8 +568,8 @@ class student(Snake):
                     tail_action = tail_action[0]
                 if self.aStar((node.maze[0], node.maze[1], node.maze[2], (node.maze[0][-1][0] + tail_action[0], node.maze[0][-1][1] + tail_action[1])), tail=True) != -1:
                     #print("Successfull A* Time: limit - {}   start - {}   end - {}   diff - {}\n".format(self.agent_time * 0.05, s, pygame.time.get_ticks(), pygame.time.get_ticks() - s))
-
                     return node.getAction()
+
                 else:
                     valid_action = None
                     num_valid_actions = 0
