@@ -327,10 +327,14 @@ class student(Snake):
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         if self.ahead or self.points >= self.opponentPoints + 60:
             self.ahead = True
-            for x in self.areas:
-                if x.isIn(self.body[0]):
-                    goal = x.furthest_area.center
-                    break
+            m = -1
+            a = None
+            for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints) :
+                b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
+                if self.distance(b, self.body[-1]) > m:
+                    m = self.distance(b,self.body[-1])
+                    a = b
+            goal = a
             if self.points <= self.opponentPoints + 30:
                 self.ahead = False
 
@@ -434,10 +438,24 @@ class student(Snake):
                 square = x
 
         if food_pos_square == None:
-            return square.furthest_area.center
+            m = -1
+            a = None
+            for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints) :
+                b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
+                if self.distance(b, self.body[-1]) > m:
+                    m = self.distance(b,self.body[-1])
+                    a = b
+            return a
 
-        if len(food_pos_square.gateways) <= 2 and (food_pos_square.maxX - food_pos_square.minX + food_pos_square.maxY - food_pos_square.minY + 2) < len(self.body) * 1.5 and not (food_pos_square.maxX == food_pos_square.minX or (food_pos_square.maxY == food_pos_square.minY)):
-            return square.furthest_area.center
+        if len(food_pos_square.gateways) < 2 and (food_pos_square.maxX - food_pos_square.minX + food_pos_square.maxY - food_pos_square.minY + 2) < len(self.body) * 1.5:
+            m = -1
+            a = None
+            for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints) :
+                b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
+                if self.distance(b, self.body[-1]) > m:
+                    m = self.distance(b,self.body[-1])
+                    a = b
+            return a
 
         if food_pos_square == square:
             self.count = 0
@@ -479,7 +497,7 @@ class student(Snake):
         else:
             heappush(self.frontier, self.node)
 
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.6):
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.55):
 
             if not self.frontier:
                 return None
@@ -532,9 +550,9 @@ class student(Snake):
                     limit = self.agent_time*0.3 if self.first_search else self.agent_time*0.1
         else:
             if self.calculated:
-                limit = self.agent_time*0.6
+                limit = self.agent_time*0.50
             else:
-                limit = self.agent_time*0.6 if self.first_search else self.agent_time*0.2
+                limit = self.agent_time*0.50 if self.first_search else self.agent_time*0.2
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
