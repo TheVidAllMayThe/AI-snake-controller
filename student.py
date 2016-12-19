@@ -314,7 +314,7 @@ class student(Snake):
         if self.ahead or self.points >= self.opponentPoints + 50:
             self.ahead = True
             for x in [ g[0] for g in self.biggest_square.gateways ]:
-                if self.body[0] not in x:
+                if x not in self.body:
                     goal = x
                     break
             if self.points <= self.opponentPoints + 30:
