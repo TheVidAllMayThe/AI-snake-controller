@@ -308,13 +308,13 @@ class student(Snake):
             self.calculated = False
             self.first_high_search = True
 
-        if self.ahead or self.points >= self.opponentPoints + 70:
+        if self.ahead or self.points >= self.opponentPoints + 50:
             self.ahead = True
             #for a in [up, left, down, right]:
-            goal =  ( self.body[-1][0] - (self.body[-2][0] - self.body[-1][0])%self.mapsize[0], self.body[-1][0] - (self.body[-2][1] - self.body[-1][1])%self.mapsize[1] )
+            goal = ( 2*self.body[-1][0] - self.body[-2][0] , 2*self.body[-1][1] - self.body[-2][1])
                 #if goal not in self.obstacles + self.body + self.opponent_agent:
                 #    break
-            if self.points <= self.opponentPoints + 40:
+            if self.points <= self.opponentPoints + 30:
                 self.ahead = False
         elif self.first_search:
             goal = maze.foodpos
@@ -356,6 +356,7 @@ class student(Snake):
         if action is not None:
             self.direction = action
         self.first = False
+        print(self.direction if self.direction is not None else "None")
 
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
@@ -377,7 +378,7 @@ class student(Snake):
         for block in snake1[:-1]:
             for x in [ ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) for a in actions if ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) not in snake1 + snake2 + obstacles + deadends]:
 
-                if pygame.time.get_ticks() - s > self.agent_time * 0.1:
+                if pygame.time.get_ticks() - s < self.agent_time * 0.1:
                     #print("not done")
                     return deadends
                 l = [ a for a in actions if ( ( x[0] + a[0] ) % self.mapsize[0], ( x[1] + a[1] ) % self.mapsize[1] ) not in obstacles + deadends + snake1[1:] + snake2]
@@ -388,7 +389,7 @@ class student(Snake):
                     yt = x[1]
                     if not l:
                         break
-                    while pygame.time.get_ticks() - s > self.agent_time * 0.1:
+                    while pygame.time.get_ticks() - s < self.agent_time * 0.1:
                         xt,yt = ((xt+lt[0][0]) % self.mapsize[0], (yt+lt[0][1])%self.mapsize[1])
                         lt = [a for a in actions if ((xt + a[0]) % self.mapsize[0], (yt + a[1]) % self.mapsize[1]) not in obstacles + deadends + snake1[1:] + snake2]
                         if len(lt) != 1 or (xt,yt) == snake1[0]:
@@ -469,7 +470,7 @@ class student(Snake):
         else:
             heappush(self.frontier, self.node)
 
-        while (pygame.time.get_ticks() - s) < (self.agent_time*0.45):
+        while (pygame.time.get_ticks() - s) < (self.agent_time*0.6):
 
             if not self.frontier:
                 return None
@@ -514,11 +515,11 @@ class student(Snake):
         highest_depth_node = node
 
         if self.calculated:
-            limit = self.agent_time*0.2
+            limit = self.agent_time*0.3
         else:
-            limit = self.agent_time*0.2 if self.first_search else self.agent_time*0.1
+            limit = self.agent_time*0.3 if self.first_search else self.agent_time*0.1
             if tail:
-                limit = self.agent_time*0.25 if self.first_search else self.agent_time*0.1
+                limit = self.agent_time*0.3 if self.first_search else self.agent_time*0.1
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
