@@ -184,7 +184,7 @@ class Area:
                         self.gateways.add(((x + 1, self.maxY), down))
 
     def distance(self, pos1, pos2):
-        return ((min(abs(pos2[0] - pos1[0]), (self.mapsize[0]) - 1 - abs(pos2[0] - pos1[0]))) ** 2 + (min(abs(pos2[1] - pos1[1]), self.mapsize[1] - 1 - abs(pos2[1] - pos1[1]))) ** 2) ** (1 / 2)
+        return ((pos2[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2) ** (1 / 2)
 
     def __str__(self):
         neighbours = "["
@@ -432,10 +432,12 @@ class student(Snake):
                 food_pos_square = x
             if x.isIn(head):
                 square = x
-        
+
         if food_pos_square == None:
-            for x in self.biggest_square.gateways:
-                return x[0]
+            return square.furthest_area.center
+
+        if len(food_pos_square.gateways) <= 2 and (food_pos_square.maxX - food_pos_square.minX + food_pos_square.maxY - food_pos_square.minY + 2) < len(self.body) * 1.5 and not (food_pos_square.maxX == food_pos_square.minX or (food_pos_square.maxY == food_pos_square.minY)):
+            return square.furthest_area.center
 
         if food_pos_square == square:
             self.count = 0
