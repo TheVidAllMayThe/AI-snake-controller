@@ -329,7 +329,7 @@ class student(Snake):
             self.ahead = True
             for x in self.areas:
                 if x.isIn(self.body[0]):
-                    goal = x.furthest_area.center
+                    goal = self.highLevelSearch(self.body[0], x.furthest_area.center, self.pathlen)
                     break
             if self.points <= self.opponentPoints + 30:
                 self.ahead = False
@@ -337,7 +337,7 @@ class student(Snake):
         elif self.first_search:
             goal = maze.foodpos
         else:
-            goal = self.highLevelSearch(self.body[0], maze.foodpos)
+            goal = self.highLevelSearch(self.body[0], maze.foodpos, self.distance)
 
         if self.calculated:
             self.count += 1
@@ -426,7 +426,7 @@ class student(Snake):
         mazedata = (playerpos,mazedata[1],mazedata[2],mazedata[3])
         return mazedata
 
-    def highLevelSearch(self, head, foodpos):
+    def highLevelSearch(self, head, foodpos, distance):
         s = pygame.time.get_ticks()
         square = None
         food_pos_square = None
@@ -441,6 +441,7 @@ class student(Snake):
             return square.furthest_area.center
 
         if len(food_pos_square.gateways) <= 2 and (food_pos_square.maxX - food_pos_square.minX + food_pos_square.maxY - food_pos_square.minY + 2) < len(self.body) * 1.5 and not (food_pos_square.maxX == food_pos_square.minX or (food_pos_square.maxY == food_pos_square.minY)):
+            print("stuff")
             return square.furthest_area.center
 
         if food_pos_square == square:
@@ -453,7 +454,7 @@ class student(Snake):
             return foodpos
 
         if self.calculated:
-            if self.distance(head, self.calculated_path[0]) >= (((self.square_size+2)**2)*2)**(1/2) or self.count == 50:
+            if distance(head, self.calculated_path[0]) >= (((self.square_size+2)**2)*2)**(1/2) or self.count == 50:
                 self.count = 0
                 self.food_pos_square = food_pos_square
                 self.frontier = []
@@ -477,7 +478,7 @@ class student(Snake):
 
         if self.first_high_search:
             self.food_pos_square = food_pos_square
-            self.node = HiNode((head, (0, 0)), 0, self.distance(head, foodpos), None, square, None, self.mapsize)
+            self.node = HiNode((head, (0, 0)), 0, distance(head, foodpos), None, square, None, self.mapsize)
             heappush(self.frontier, self.node)
             self.first_high_search = False
         else:
@@ -506,7 +507,7 @@ class student(Snake):
                     if neighbour.isIn(newPlace):
                         square = neighbour
 
-                child = HiNode(x, self.node.costG + self.distance(self.node.get_gateway_result(), newPlace), self.distance(newPlace, foodpos), self.node, square, self.node.square, self.mapsize)
+                child = HiNode(x, self.node.costG + distance(self.node.get_gateway_result(), newPlace), distance(newPlace, foodpos), self.node, square, self.node.square, self.mapsize)
                 if x not in self.explored and child not in self.frontier:
                     heappush(self.frontier, child)
 
