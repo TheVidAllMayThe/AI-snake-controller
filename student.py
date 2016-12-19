@@ -283,8 +283,10 @@ class student(Snake):
                             ycount += 1
                         yloopend = yloopend if yloopend != -1 else self.mapsize[1] - 1
                         self.areas += [Area(xloopstart, xloopend, yloopstart, yloopend, self.obstacles, self.mapsize)]
-
+            self.biggest_square = None
             for area in self.areas:
+                if self.biggest_square == None or ( self.biggest_square.borders[0][1] - self.biggest_square.borders[0][0] ) * ( self.biggest_square.borders[1][1] - self.biggest_square.borders[1][0]) < ( area.borders[0][1] - area.borders[0][0] ) * ( area.borders[1][1] - area.borders[1][0] ):
+                    self.biggest_square = area
                 area.getneighbours(self.areas)
 
     def updateDirection(self,maze):
@@ -308,17 +310,13 @@ class student(Snake):
             self.calculated = False
             self.first_high_search = True
 
-        print(0)
         deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
         if self.ahead or self.points >= self.opponentPoints + 50:
             self.ahead = True
-            x = self.valid_actions( ( self.body, self.opponent_agent, self.obstacles[:] + deadends, None ), self.points, self.opponentPoints )
-            if up in x:
-                goal = up
-            elif left in x:
-                goal = left
-            else:
-                goal = None
+            for x in [ g[0] for g in self.biggest_square.gateways ]:
+                if self.body[0] not in x:
+                    goal = x
+                    break
             if self.points <= self.opponentPoints + 30:
                 self.ahead = False
         elif self.first_search:
@@ -392,7 +390,7 @@ class student(Snake):
 
 
     def distance(self, pos1, pos2):
-        return ((min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0])))**2  +  (min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1])))**2)**(1/2)
+        return ((min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0])))**2 +  (min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1])))**2)**(1/2)
 
     def isGoal(self, mazedata):
         oppActions = [False]
@@ -421,7 +419,8 @@ class student(Snake):
                 square = x
         
         if food_pos_square == None:
-            return ( 2*self.body[-1][0] - self.body[-2][0], 2*self.body[-2][0] - self.body[-2][1] )
+            for x in self.biggest_square.gateways:
+                return x[0]
 
         if food_pos_square == square:
             self.count = 0
