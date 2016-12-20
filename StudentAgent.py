@@ -6,7 +6,8 @@ from node import *
 import random
 import math
 
-
+#David Almeida 76377
+#Manuel Xarez 76412
 class Area:
     totalAreas = []
 
@@ -208,9 +209,9 @@ class Area:
 
 
 
-class student(Snake):
+class StudentPlayer(Snake):
 
-    def __init__(self, body=[(0, 0)], direction=(1,0), name="Pizza Boy aka Robot"):
+    def __init__(self, body=[(0, 0)], direction=(1, 0), name="Pizza Boy aka Robot"):
         super().__init__(body,direction,name=name)
 
         self.firstcalculated = False
@@ -306,62 +307,66 @@ class student(Snake):
 
     def updateDirection(self,maze):
 
-        if self.first:
-            self.obstacles = maze.obstacles[:]
-            self.ahead = False
-        self.opponent_agent_score_change = False
-        self.opponent_agent_old_score = len(self.opponent_agent)
-        self.opponent_agent = [x for x in maze.playerpos if x not in self.body]
-        self.opponent_agent = self.opponent_agent if len(self.opponent_agent) > 0 else [(-1337,-1337)]
-
-        if self.opponent_agent_old_score != len(self.opponent_agent):
-            self.opponent_agent_score_change = True
-            self.opponent_agent_old_score = len(self.opponent_agent)
-
-        if len(self.body) + len(self.opponent_agent) != self.current_players_len:
-            self.first_search = True
-            self.current_players_len = len(self.body) + len(self.opponent_agent)
-            self.frontier = []
-            self.explored = []
-            self.calculated = False
-            self.first_high_search = True
-
-        deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
-        if self.ahead or self.points >= self.opponentPoints + 60:
-            self.ahead = True
-            m = -1
-            a = None
-            l1 = self.valid_actions ( ( self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints )
-            l2 = self.valid_actions ( ( self.body, self.opponent_agent, self.obstacles[:], None ), self.points, self.opponentPoints )
-            for a in l1 if l1 else l2:
-                b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
-                l = sum([self.distance(b, x) for x in self.body[1:]])
-                if l > m:
-                    m = self.distance(b,self.body[-1])
-                    a = b
-            if self.points <= self.opponentPoints + 30:
+        try:
+            if self.first:
+                self.obstacles = maze.obstacles[:]
                 self.ahead = False
-            goal = a if a != None else (0,0)
-        elif self.first_search:
-            goal = maze.foodpos
-        else:
-            goal = self.highLevelSearch(self.body[0], maze.foodpos)
-        if self.calculated:
-            self.count += 1
+            self.opponent_agent_score_change = False
+            self.opponent_agent_old_score = len(self.opponent_agent)
+            self.opponent_agent = [x for x in maze.playerpos if x not in self.body]
+            self.opponent_agent = self.opponent_agent if len(self.opponent_agent) > 0 else [(-1337,-1337)]
 
-        self.mazedata_without_deadends = (self.body, self.opponent_agent, self.obstacles, goal)
-        mazedata = (self.body, self.opponent_agent, self.obstacles[:] + deadends, goal) #Search for food
+            if self.opponent_agent_old_score != len(self.opponent_agent):
+                self.opponent_agent_score_change = True
+                self.opponent_agent_old_score = len(self.opponent_agent)
 
-        action = self.aStar(mazedata)
-        if action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
-            action = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
-        elif action is None:
-            action = self.direction
-        self.direction = action
-        self.first = False
-        if self.firstcalculated:
-            self.calculated = True
-            self.firstcalculated = False
+            if len(self.body) + len(self.opponent_agent) != self.current_players_len:
+                self.first_search = True
+                self.current_players_len = len(self.body) + len(self.opponent_agent)
+                self.frontier = []
+                self.explored = []
+                self.calculated = False
+                self.first_high_search = True
+
+            deadends = self.deadEnds(self.body,self.opponent_agent,self.obstacles)
+            if self.ahead or self.points >= self.opponentPoints + 60:
+                self.ahead = True
+                m = -1
+                a = None
+                l1 = self.valid_actions ( ( self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints )
+                l2 = self.valid_actions ( ( self.body, self.opponent_agent, self.obstacles[:], None ), self.points, self.opponentPoints )
+                for a in l1 if l1 else l2:
+                    b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
+                    l = sum([self.distance(b, x) for x in self.body[1:]])
+                    if l > m:
+                        m = self.distance(b,self.body[-1])
+                        a = b
+                if self.points <= self.opponentPoints + 30:
+                    self.ahead = False
+                goal = a if a != None else (0,0)
+            elif self.first_search:
+                goal = maze.foodpos
+            else:
+                goal = self.highLevelSearch(self.body[0], maze.foodpos)
+            if self.calculated:
+                self.count += 1
+
+            self.mazedata_without_deadends = (self.body, self.opponent_agent, self.obstacles, goal)
+            mazedata = (self.body, self.opponent_agent, self.obstacles[:] + deadends, goal) #Search for food
+
+            action = self.aStar(mazedata)
+            if action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
+                action = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
+            elif action is None:
+                action = self.direction
+            self.direction = action
+            self.first = False
+            if self.firstcalculated:
+                self.calculated = True
+                self.firstcalculated = False
+
+        except:
+            self.direction = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
 
     def valid_actions(self, mazedata, points, oppPoints):
             validDirections = []
