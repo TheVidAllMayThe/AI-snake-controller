@@ -543,11 +543,11 @@ class student(Snake):
 
         if self.agent_time >= 15:
             if self.calculated:
-                limit = self.agent_time*0.3
+                limit = self.agent_time*0.25
             else:
-                limit = self.agent_time*0.3 if self.first_search else self.agent_time*0.1
+                limit = self.agent_time*0.25 if self.first_search else self.agent_time*0.1
                 if tail:
-                    limit = self.agent_time*0.3 if self.first_search else self.agent_time*0.1
+                    limit = self.agent_time*0.25 if self.first_search else self.agent_time*0.1
         else:
             if self.calculated:
                 limit = self.agent_time*0.50
