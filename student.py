@@ -383,7 +383,7 @@ class student(Snake):
         actions = [up,down,left,right]
         deadends = []
 
-        for block in snake1[:-1]:
+        for block in snake1:
             for x in [ ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) for a in actions if ( ( block[0] + a[0] ) % self.mapsize[0], ( block[1] + a[1] ) % self.mapsize[1] ) not in snake1 + snake2 + obstacles + deadends]:
 
                 if pygame.time.get_ticks() - s >= self.agent_time * 0.1:
@@ -410,7 +410,7 @@ class student(Snake):
 
 
     def distance(self, pos1, pos2):
-        return ((min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0])))**2 +  (min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1])))**2)**(1/2)
+        return min(abs(pos2[0]-pos1[0]), (self.mapsize[0])-1-abs(pos2[0]-pos1[0]))  +  min(abs(pos2[1]-pos1[1]), self.mapsize[1]-1-abs(pos2[1]-pos1[1]))
 
     def isGoal(self, mazedata):
         oppActions = [False]
@@ -447,9 +447,9 @@ class student(Snake):
                 if l > m:
                     m = self.distance(b,self.body[-1])
                     a = b
-            return a
+            return a 
 
-        if len(food_pos_square.gateways) < 2 and (food_pos_square.maxX - food_pos_square.minX + food_pos_square.maxY - food_pos_square.minY + 2) < len(self.body) * 1.5:
+        if len(food_pos_square.gateways) <= 2 and (food_pos_square.maxX - food_pos_square.minX + food_pos_square.maxY - food_pos_square.minY + 2) < len(self.body) * 1.5 and not (food_pos_square.maxX == food_pos_square.minX or (food_pos_square.maxY == food_pos_square.minY)):
             m = -1
             a = None
             for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:], None), self.points, self.opponentPoints) :
