@@ -331,7 +331,8 @@ class student(Snake):
             a = None
             for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints) :
                 b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
-                if self.distance(b, self.body[-1]) > m:
+                l = sum([self.distance(b, x) for x in self.body[1:]])
+                if l > m:
                     m = self.distance(b,self.body[-1])
                     a = b
             goal = a
@@ -442,7 +443,8 @@ class student(Snake):
             a = None
             for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:], None), self.points, self.opponentPoints) :
                 b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
-                if self.distance(b, self.body[-1]) > m:
+                l = sum([self.distance(b, x) for x in self.body[1:]])
+                if l > m:
                     m = self.distance(b,self.body[-1])
                     a = b
             return a
@@ -452,7 +454,8 @@ class student(Snake):
             a = None
             for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:], None), self.points, self.opponentPoints) :
                 b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
-                if self.distance(b, self.body[-1]) > m:
+                l = sum([self.distance(b, x) for x in self.body[1:]])
+                if l > m:
                     m = self.distance(b,self.body[-1])
                     a = b
             return a
