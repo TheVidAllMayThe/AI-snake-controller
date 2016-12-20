@@ -329,21 +329,21 @@ class student(Snake):
             self.ahead = True
             m = -1
             a = None
-            for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints) :
+            l1 = self.valid_actions ( ( self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints )
+            l2 = self.valid_actions ( ( self.body, self.opponent_agent, self.obstacles[:], None ), self.points, self.opponentPoints )
+            for a in l1 if l1 else l2:
                 b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
                 l = sum([self.distance(b, x) for x in self.body[1:]])
                 if l > m:
                     m = self.distance(b,self.body[-1])
                     a = b
-            goal = a
             if self.points <= self.opponentPoints + 30:
                 self.ahead = False
-
+            goal = a if a != None else (0,0)
         elif self.first_search:
             goal = maze.foodpos
         else:
             goal = self.highLevelSearch(self.body[0], maze.foodpos)
-
         if self.calculated:
             self.count += 1
 
@@ -351,19 +351,11 @@ class student(Snake):
         mazedata = (self.body, self.opponent_agent, self.obstacles[:] + deadends, goal) #Search for food
 
         action = self.aStar(mazedata)
-        valid_action = None
-        if action is None or (self.body[0][0] + action[0], self.body[0][1] + action[1]) in (self.obstacles + self.body + self.opponent_agent):
-            num_valid_actions = 0
-            for x in self.valid_actions(self.mazedata_without_deadends, 10, 0):
-                valid_actions = self.valid_actions(self.result(self.mazedata_without_deadends, x), 10, 0)
-                if len(valid_actions) > num_valid_actions:
-                    num_valid_actions = len(valid_actions)
-                    valid_action = x
-            action = valid_action if valid_action is not None else self.direction
         if action is None and self.valid_actions(self.mazedata_without_deadends, 10, 0):
             action = self.valid_actions(self.mazedata_without_deadends, 10, 0)[0]
-        if action is not None:
-            self.direction = action
+        elif action is None:
+            action = self.direction
+        self.direction = action
         self.first = False
 
     def valid_actions(self, mazedata, points, oppPoints):
