@@ -553,9 +553,9 @@ class student(Snake):
                     limit = self.agent_time*0.25 if self.first_search else self.agent_time*0.1
         else:
             if self.calculated:
-                limit = self.agent_time*0.50
+                limit = self.agent_time*0.40
             else:
-                limit = self.agent_time*0.50 if self.first_search else self.agent_time*0.2
+                limit = self.agent_time*0.40 if self.first_search else self.agent_time*0.2
 
         while (pygame.time.get_ticks() - s) < limit:
             if not frontier:
