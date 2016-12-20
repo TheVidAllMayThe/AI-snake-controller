@@ -440,7 +440,7 @@ class student(Snake):
         if food_pos_square == None:
             m = -1
             a = None
-            for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints) :
+            for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:], None), self.points, self.opponentPoints) :
                 b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
                 if self.distance(b, self.body[-1]) > m:
                     m = self.distance(b,self.body[-1])
@@ -450,7 +450,7 @@ class student(Snake):
         if len(food_pos_square.gateways) < 2 and (food_pos_square.maxX - food_pos_square.minX + food_pos_square.maxY - food_pos_square.minY + 2) < len(self.body) * 1.5:
             m = -1
             a = None
-            for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:] + deadends, None), self.points, self.opponentPoints) :
+            for a in self.valid_actions( (self.body, self.opponent_agent, self.obstacles[:], None), self.points, self.opponentPoints) :
                 b = (self.body[0][0] + a[0], self.body[0][1] + a[1])
                 if self.distance(b, self.body[-1]) > m:
                     m = self.distance(b,self.body[-1])
