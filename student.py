@@ -239,7 +239,7 @@ class student(Snake):
         self.nOpponents = len(points) - 1
         self.mapsize = mapsize
         if self.nOpponents == 0:
-            self.opponentPoints = 0
+            self.opponentPoints = self.points - 10
         else:
             self.opponentPoints = [x[1] for x in points if x[0] != self.name][0]
         self.game = game
@@ -312,6 +312,7 @@ class student(Snake):
         self.opponent_agent_score_change = False
         self.opponent_agent_old_score = len(self.opponent_agent)
         self.opponent_agent = [x for x in maze.playerpos if x not in self.body]
+        self.opponent_agent = self.opponent_agent if len(self.opponent_agent) > 0 else [(-1337,-1337)]
 
         if self.opponent_agent_old_score != len(self.opponent_agent):
             self.opponent_agent_score_change = True
